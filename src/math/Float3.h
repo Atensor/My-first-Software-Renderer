@@ -10,10 +10,15 @@ class Float3 {
     Float3();
     Float3(float x, float y, float z);
 
-    static Float3 add(const Float3 &a, const Float3 &b);
-    static Float3 subtract(const Float3 &a, const Float3 &b);
-    static float dot(const Float3 &a, const Float3, Float3 b);
-    static Float3 cross(const Float3 &a, const Float3, Float3 b);
+    Float3 operator+(const Float3 &a) const;
+    Float3 operator-(const Float3 &a) const;
+    Float3 operator*(const Float3 &a) const;
+    static float dot(const Float3 &a, const Float3 &b);
+    static Float3 cross(const Float3 &a, const Float3 &b);
+
+    static Float3 scale(const Float3 &a, float r);
+
+    float get_length() const;
 
     void print();
 };

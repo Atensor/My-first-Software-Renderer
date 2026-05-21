@@ -1,4 +1,5 @@
 #include "../math/Float2.h"
+#include "../structs/Vertex.h"
 #include "Framebuffer.h"
 #include <array>
 #ifndef TRIANGLE_H
@@ -6,31 +7,20 @@
 
 class Triangle {
   private:
-    std::array<Float2, 3> m_points;
-
-    int m_width;
-    int m_height;
-
-    Float2 m_bound_min;
-    Float2 m_bound_max;
-
-    Float3 m_color;
+    std::array<Vertex, 3> m_vertices;
 
   public:
-    Triangle(const Float2 &a, const Float2 &b, const Float2 &c,
-             const Float3 &color);
+    Triangle(const Vertex &a, const Vertex &b, const Vertex &c);
 
-    int get_width() const;
-    int get_height() const;
+    const Vertex &get_a() const;
+    const Vertex &get_b() const;
+    const Vertex &get_c() const;
 
-    Float2 get_bound_min() const;
-    Float2 get_bound_max() const;
+    Float3 get_color(const Float2 &x) const;
 
-    Float2 get_a() const;
-    Float2 get_b() const;
-    Float2 get_c() const;
-
-    Float3 get_color() const;
+    float get_area() const;
+    float get_area(int i_vertex_a, int i_vertex_b, const Float3 &c) const;
+    Float3 get_barycentric_coordinates(const Float3 &x) const;
 
     bool is_inside(int x, int y) const;
     void draw_triangle(Framebuffer *buffer) const;
