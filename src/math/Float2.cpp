@@ -9,6 +9,10 @@ Float2 Float2::add(const Float2 &a, const Float2 &b) {
     return Float2{a.x + b.x, a.y + b.y};
 }
 
+Float2 Float2::subtract(const Float2 &a, const Float2 &b) {
+    return Float2{a.x - b.x, a.y - b.y};
+}
+
 float Float2::dot(const Float2 &a, const Float2 &b) {
     return a.x * b.x + a.y * b.y;
 }
@@ -17,4 +21,4 @@ float Float2::cross(const Float2 &a, const Float2 &b) {
     return a.x * b.y - a.y * b.x;
 }
 
-void Float2::print() { std::cout << "(" << x << "|" << y << ")"; }
+void Float2::print() const { std::cout << "(" << x << "|" << y << ")"; }

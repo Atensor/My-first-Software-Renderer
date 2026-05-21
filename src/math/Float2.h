@@ -10,10 +10,11 @@ class Float2 {
     Float2(float x, float y);
 
     static Float2 add(const Float2 &a, const Float2 &b);
+    static Float2 subtract(const Float2 &a, const Float2 &b);
     static float dot(const Float2 &a, const Float2 &b);
     static float cross(const Float2 &a, const Float2 &b);
 
-    void print();
+    void print() const;
 };
 
 #endif
