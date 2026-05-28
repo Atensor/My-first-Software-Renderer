@@ -1,8 +1,7 @@
 #ifndef FLOAT2_H
 #define FLOAT2_H
 
-class Float2 {
-  public:
+struct Float2 {
     float x;
     float y;
 
@@ -18,6 +17,8 @@ class Float2 {
     static Float2 scale(const Float2 &a, float r);
 
     float get_length() const;
+
+    Float2 normalize() const;
 
     void print() const;
 };

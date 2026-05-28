@@ -32,4 +32,8 @@ Float2 Float2::scale(const Float2 &a, float r) {
 
 float Float2::get_length() const { return std::sqrt(x * x + y * y); }
 
+Float2 Float2::normalize() const {
+    return Float2::scale(Float2{x, y}, 1.0f / get_length());
+}
+
 void Float2::print() const { std::cout << "(" << x << "|" << y << ")"; }

@@ -3,70 +3,59 @@
 #include <cmath>
 
 Triangle::Triangle(const Vertex &a, const Vertex &b, const Vertex &c)
-    : m_vertices{a, b, c} {}
+    : vertices{a, b, c},
+      surface_normal{Float4::scale(a.normal + b.normal + c.normal, 1.0f / 3.0f)
+                         .normalize()} {}
 
-const Vertex &Triangle::get_a() const { return m_vertices[0]; }
-
-const Vertex &Triangle::get_b() const { return m_vertices[1]; }
-
-const Vertex &Triangle::get_c() const { return m_vertices[2]; }
-
-// TODO: Adapt for 3D space to View plane projection
-Float3 Triangle::get_color(const Float2 &x) const {
-    Float2 a(m_vertices[0].pos.x, m_vertices[0].pos.y);
-    Float2 b(m_vertices[1].pos.x, m_vertices[1].pos.y);
-    Float2 c(m_vertices[2].pos.x, m_vertices[2].pos.y);
-
+Float4 Triangle::get_color(const Float2 &a, const Float2 &b, const Float2 &c,
+                           const Float3 &x) const {
     Float3 barycentric_coordinates{
-        get_barycentric_coordinates(Float3{x.x, x.y, 0})};
+        Triangle::get_barycentric_coordinates(a, b, c, x.xy())};
     // blending colors
-    Float3 color{Float3::scale(m_vertices[0].color, barycentric_coordinates.x) +
-                 Float3::scale(m_vertices[1].color, barycentric_coordinates.y) +
-                 Float3::scale(m_vertices[2].color, barycentric_coordinates.z)};
+    Float4 color{
+        Float3::scale(vertices[0].color.xyz(), barycentric_coordinates.x) +
+            Float3::scale(vertices[1].color.xyz(), barycentric_coordinates.y) +
+            Float3::scale(vertices[2].color.xyz(), barycentric_coordinates.z),
+        vertices[0].color.a * barycentric_coordinates.x +
+            vertices[1].color.a * barycentric_coordinates.y +
+            vertices[2].color.a * barycentric_coordinates.z};
 
-    // applying shadows to the triangle
-    return Float3{
-        Float3::scale(color, m_vertices[0].light * barycentric_coordinates.x) +
-        Float3::scale(color, m_vertices[1].light * barycentric_coordinates.y) +
-        Float3::scale(color, m_vertices[2].light * barycentric_coordinates.z)};
+    float light{vertices[0].light * barycentric_coordinates.x +
+                vertices[1].light * barycentric_coordinates.y +
+                vertices[2].light * barycentric_coordinates.z};
 
-    return color;
+    return Float4{Float3::scale(color.xyz(), light), color.a};
 }
 
-float Triangle::get_area() const {
-    Float3 ab = m_vertices[1].pos - m_vertices[0].pos;
-    Float3 ac = m_vertices[2].pos - m_vertices[0].pos;
+float Triangle::get_area(const Float2 &a, const Float2 &b, const Float2 &c) {
+    Float2 ab = b - a;
+    Float2 ac = c - a;
 
-    return Float3::cross(ab, ac).get_length();
+    return Float2::cross(ab, ac);
 }
 
-float Triangle::get_area(int i_vertex_a, int i_vertex_b,
-                         const Float3 &c) const {
-    Float3 ab = m_vertices[i_vertex_b].pos - m_vertices[i_vertex_a].pos;
-    Float3 ac = c - m_vertices[i_vertex_a].pos;
+Float3 Triangle::get_barycentric_coordinates(const Float2 &a, const Float2 &b,
+                                             const Float2 &c, const Float2 &x) {
+    float area{Triangle::get_area(a, b, c)};
 
-    return Float3::cross(ab, ac).get_length();
-}
+    float area_bcx{Triangle::get_area(b, c, x)};
+    float area_acx{Triangle::get_area(c, a, x)};
+    float area_abx{Triangle::get_area(a, b, x)};
 
-Float3 Triangle::get_barycentric_coordinates(const Float3 &x) const {
-    float area{get_area()};
-    return Float3{get_area(1, 2, x) / area, get_area(0, 2, x) / area,
-                  get_area(0, 1, x) / area};
+    return Float3{area_bcx / area, area_acx / area, area_abx / area};
 }
 
 float get_side(const Float2 &a, const Float2 &b, int x, int y) {
     return Float2::cross(b - a, Float2(x, y) - a);
 }
 
-bool Triangle::is_inside(int x, int y) const {
+bool Triangle::is_inside(int x, int y,
+                         const std::array<Float2, 3> &vertices) const {
     bool has_pos{false};
     bool has_neg{false};
-    for (int i = 0; i < m_vertices.size(); i++) {
+    for (int i = 0; i < vertices.size(); i++) {
         float cross(
-            get_side(Float2{m_vertices[i].pos.x, m_vertices[i].pos.y},
-                     Float2{m_vertices[(i + 1) % m_vertices.size()].pos.x,
-                            m_vertices[(i + 1) % m_vertices.size()].pos.y},
-                     x, y));
+            get_side(vertices[i], vertices[(i + 1) % vertices.size()], x, y));
         has_pos |= (cross >= 0);
         has_neg |= (cross < 0);
         if (has_pos && has_neg) {
@@ -74,27 +63,4 @@ bool Triangle::is_inside(int x, int y) const {
         }
     }
     return true;
-}
-
-void Triangle::draw_triangle(Framebuffer *buffer) const {
-
-    float x_min{std::min(std::min(m_vertices[0].pos.x, m_vertices[1].pos.x),
-                         m_vertices[2].pos.x)};
-    float x_max{std::max(std::max(m_vertices[0].pos.x, m_vertices[1].pos.x),
-                         m_vertices[2].pos.x)};
-
-    float y_min{std::min(std::min(m_vertices[0].pos.y, m_vertices[1].pos.y),
-                         m_vertices[2].pos.y)};
-    float y_max{std::max(std::max(m_vertices[0].pos.y, m_vertices[1].pos.y),
-                         m_vertices[2].pos.y)};
-
-    Float2 bound_min{x_min, y_min};
-    Float2 bound_max{x_max, y_max};
-    for (int x = bound_min.x; x <= bound_max.x; x++) {
-        for (int y = bound_min.y; y <= bound_max.y; y++) {
-            if (is_inside(x, y)) {
-                buffer->write_pixel(x, y, get_color(Float2(x, y)));
-            }
-        }
-    }
 }

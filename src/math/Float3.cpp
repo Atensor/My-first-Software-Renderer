@@ -33,4 +33,10 @@ Float3 Float3::scale(const Float3 &a, float r) {
 
 float Float3::get_length() const { return std::sqrt(x * x + y * y + z * z); }
 
+Float3 Float3::normalize() const {
+    return Float3::scale(Float3(x, y, z), 1.0f / get_length());
+}
+
+Float2 Float3::xy() const { return Float2{x, y}; }
+
 void Float3::print() { std::cout << "(" << x << "|" << y << "|" << z << ")"; }
