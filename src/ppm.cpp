@@ -4,8 +4,6 @@
 #include <algorithm>
 #include <iostream>
 #include <limits>
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 #define ENDLINE "\n"
 
@@ -27,6 +25,7 @@ int main() {
     }
 
     Obj monkey("monkey.obj");
+    Obj cube("Cube.obj");
 
     Camera camera;
     camera.VP_depth = 1;
@@ -37,21 +36,12 @@ int main() {
     Renderer renderer;
 
     for (int i = 0; i < monkey.get_face_count(); i++) {
-        std::array<Vertex, 3> vertices = monkey.get_Face(i);
+        std::array<Vertex, 3> vertices = monkey.get_Face_Vertices(i);
 
-        Float4 face_color =
-            Float4{Float3::scale(vertices[1].normal.xyz() + Float3{1, 1, 1},
-                                 1.0f / 2.0f),
-                   1.0f};
-
-        vertices[0].color = face_color;
-        vertices[1].color = face_color;
-        vertices[2].color = face_color;
-
-        Float4 v{0, 0, 3, 0};
+        Float4 v{0.5f, 0, 3, 0};
         Matrix4 translate{Transform::translate(v)};
 
-        Matrix4 rotate_x{Transform::rotate_x(M_PI)};
+        Matrix4 rotate_x{Transform::rotate_x(180)};
         Matrix4 rotate_y{Transform::rotate_y(0)};
 
         for (int j = 0; j < vertices.size(); j++) {
@@ -61,10 +51,49 @@ int main() {
         }
         Triangle triangle(vertices[0], vertices[1], vertices[2]);
 
+        Float4 face_color = Float4{
+            Float3::scale(triangle.surface_normal.xyz() + Float3{1, 1, 1},
+                          1.0f / 2.0f),
+            1.0f};
+
+        triangle.vertices[0].color = face_color;
+        triangle.vertices[1].color = face_color;
+        triangle.vertices[2].color = face_color;
+
+        renderer.draw_triangle(triangle, camera, buffer);
+    }
+
+    for (int i = 0; i < cube.get_face_count(); i++) {
+        std::array<Vertex, 3> vertices = cube.get_Face_Vertices(i);
+
+        Float4 v{-2, 0, 5, 0};
+        Matrix4 translate{Transform::translate(v)};
+
+        Matrix4 rotate_x{Transform::rotate_x(45)};
+        Matrix4 rotate_y{Transform::rotate_y(-35)};
+
+        for (int j = 0; j < vertices.size(); j++) {
+            vertices[j] = Transform::transform(vertices[j], rotate_y);
+            vertices[j] = Transform::transform(vertices[j], rotate_x);
+            vertices[j] = Transform::transform(vertices[j], translate);
+        }
+        Triangle triangle(vertices[0], vertices[1], vertices[2]);
+
+        Float4 face_color = Float4{
+            Float3::scale(triangle.surface_normal.xyz() + Float3{1, 1, 1},
+                          1.0f / 2.0f),
+            1.0f};
+
+        triangle.vertices[0].color = face_color;
+        triangle.vertices[1].color = face_color;
+        triangle.vertices[2].color = face_color;
+
         renderer.draw_triangle(triangle, camera, buffer);
     }
 
     buffer->write_ppm("out.ppm");
 
     delete buffer;
+
+    return 0;
 }

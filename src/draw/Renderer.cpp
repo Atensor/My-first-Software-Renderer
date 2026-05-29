@@ -24,16 +24,18 @@ void Renderer::draw_triangle(const Triangle &tri, const Camera &camera,
 
     for (int x = bound_min.x; x <= bound_max.x; x++) {
         for (int y = bound_min.y; y <= bound_max.y; y++) {
-            float z{Float3::dot(
-                tri.get_barycentric_coordinates(a, b, c, Float2(x, y)),
-                Float3{tri.vertices[0].pos.z, tri.vertices[1].pos.z,
-                       tri.vertices[2].pos.z})};
+            Float3 barycentric_coordinates =
+                tri.get_barycentric_coordinates(a, b, c, Float2(x, y));
+            float z{
+                Float3::dot(barycentric_coordinates,
+                            Float3{tri.vertices[0].pos.z, tri.vertices[1].pos.z,
+                                   tri.vertices[2].pos.z})};
             if (tri.is_inside(x, y, std::array<Float2, 3>{a, b, c})) {
                 if (z < camera.VP_depth) {
                     continue;
                 }
-                Float4 color(
-                    tri.get_color(a, b, c, Float3((float)x, (float)y, z)));
+                Float4 color(tri.get_color(a, b, c, Float2((float)x, (float)y),
+                                           barycentric_coordinates));
                 buffer->write_pixel(x, y, color, z);
             }
         }

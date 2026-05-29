@@ -8,22 +8,38 @@ Triangle::Triangle(const Vertex &a, const Vertex &b, const Vertex &c)
                          .normalize()} {}
 
 Float4 Triangle::get_color(const Float2 &a, const Float2 &b, const Float2 &c,
-                           const Float3 &x) const {
-    Float3 barycentric_coordinates{
-        Triangle::get_barycentric_coordinates(a, b, c, x.xy())};
+                           const Float2 &x,
+                           const Float3 &barycentric_coordinates) const {
+
+    // inverse of the depth at the current pixel
+    float inv_z{(barycentric_coordinates.x / vertices[0].pos.z) +
+                (barycentric_coordinates.y / vertices[1].pos.z) +
+                (barycentric_coordinates.z / vertices[2].pos.z)};
+
     // blending colors
     Float4 color{
-        Float3::scale(vertices[0].color.xyz(), barycentric_coordinates.x) +
-            Float3::scale(vertices[1].color.xyz(), barycentric_coordinates.y) +
-            Float3::scale(vertices[2].color.xyz(), barycentric_coordinates.z),
-        vertices[0].color.a * barycentric_coordinates.x +
-            vertices[1].color.a * barycentric_coordinates.y +
-            vertices[2].color.a * barycentric_coordinates.z};
+        Float3::scale(
+            Float3::scale(vertices[0].color.xyz(),
+                          barycentric_coordinates.x / vertices[0].pos.z) +
+                Float3::scale(vertices[1].color.xyz(),
+                              barycentric_coordinates.y / vertices[1].pos.z) +
+                Float3::scale(vertices[2].color.xyz(),
+                              barycentric_coordinates.z / vertices[2].pos.z),
+            1.0f / inv_z),
+        ((vertices[0].color.a / vertices[0].pos.z) * barycentric_coordinates.x +
+         (vertices[1].color.a / vertices[1].pos.z) * barycentric_coordinates.y +
+         (vertices[2].color.a / vertices[2].pos.z) *
+             barycentric_coordinates.z) /
+            inv_z};
 
-    float light{vertices[0].light * barycentric_coordinates.x +
-                vertices[1].light * barycentric_coordinates.y +
-                vertices[2].light * barycentric_coordinates.z};
+    // blending light
+    float light{
+        ((vertices[0].light / vertices[0].pos.z) * barycentric_coordinates.x +
+         (vertices[1].light / vertices[1].pos.z) * barycentric_coordinates.y +
+         (vertices[2].light / vertices[2].pos.z) * barycentric_coordinates.z) /
+        inv_z};
 
+    // applying light to color
     return Float4{Float3::scale(color.xyz(), light), color.a};
 }
 
