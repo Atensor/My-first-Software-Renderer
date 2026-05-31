@@ -1,18 +1,15 @@
-#include "../math/Float2.h"
-#include "Framebuffer.h"
+#include "../math/vector/Float3.h"
 
 #ifndef BRESENHAMS_LINE_H
 #define BRESENHAMS_LINE_H
 
 class Bresenhams_Line {
   private:
-    Framebuffer *m_buffer;
-
     Float3 m_color;
 
   public:
-    Bresenhams_Line(Framebuffer *buffer);
-    Bresenhams_Line(Framebuffer *buffer, const Float3 &color);
+    Bresenhams_Line();
+    Bresenhams_Line(const Float3 &color);
 
     void draw_line(const Float2 &a, const Float2 &b);
 

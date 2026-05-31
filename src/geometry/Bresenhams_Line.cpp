@@ -1,9 +1,8 @@
 #include "Bresenhams_Line.h"
 
-Bresenhams_Line::Bresenhams_Line(Framebuffer *buffer) : m_buffer{buffer} {}
+Bresenhams_Line::Bresenhams_Line() {}
 
-Bresenhams_Line::Bresenhams_Line(Framebuffer *buffer, const Float3 &color)
-    : m_buffer{buffer}, m_color{color} {}
+Bresenhams_Line::Bresenhams_Line(const Float3 &color) : m_color{color} {}
 
 void Bresenhams_Line::draw_line_low(const Float2 &a, const Float2 &b) {
     int dx{int(b.x - a.x)};

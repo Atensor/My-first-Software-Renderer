@@ -1,4 +1,4 @@
-#include "../math/Float4.h"
+#include "../math/vector/Float4.h"
 
 #ifndef VERTEX_H
 #define VERTEX_H

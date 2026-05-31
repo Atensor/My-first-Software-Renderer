@@ -1,4 +1,4 @@
-#include "Float4.h"
+#include "../vector/Float4.h"
 #include <array>
 
 #ifndef MATRIX4_H
@@ -10,6 +10,7 @@ struct Matrix4 {
     std::array<std::array<float, 4>, 4> values;
 
     Float4 operator*(const Float4 &a) const;
+    Matrix4 operator*(const Matrix4 &a) const;
 
     Matrix4 inv() const;
 };

@@ -1,5 +1,4 @@
 #include "Renderer.h"
-#include "Bresenhams_Line.h"
 #include <iostream>
 
 #define ENDLINE '\n'

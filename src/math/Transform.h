@@ -1,5 +1,5 @@
 #include "../structs/Vertex.h"
-#include "Matrix4.h"
+#include "matrix/Matrix4.h"
 
 #ifndef TRANSFORM_H
 #define TRANSFORM_H

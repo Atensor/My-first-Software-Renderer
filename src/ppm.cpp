@@ -1,6 +1,6 @@
-#include "draw/Renderer.h"
 #include "math/Transform.h"
 #include "obj/Obj.h"
+#include "render/Renderer.h"
 #include <algorithm>
 #include <iostream>
 #include <limits>
@@ -35,19 +35,20 @@ int main() {
 
     Renderer renderer;
 
+    Float4 monkey_v{0.5f, 0, 3, 0};
+    Matrix4 monkey_translate{Transform::translate(monkey_v)};
+
+    Matrix4 monkey_rotate_x{Transform::rotate_x(180)};
+    Matrix4 monkey_rotate_y{Transform::rotate_y(0)};
+
+    Matrix4 monkey_transform =
+        monkey_rotate_y * monkey_rotate_x * monkey_translate;
+
     for (int i = 0; i < monkey.get_face_count(); i++) {
         std::array<Vertex, 3> vertices = monkey.get_Face_Vertices(i);
 
-        Float4 v{0.5f, 0, 3, 0};
-        Matrix4 translate{Transform::translate(v)};
-
-        Matrix4 rotate_x{Transform::rotate_x(180)};
-        Matrix4 rotate_y{Transform::rotate_y(0)};
-
         for (int j = 0; j < vertices.size(); j++) {
-            vertices[j] = Transform::transform(vertices[j], rotate_y);
-            vertices[j] = Transform::transform(vertices[j], rotate_x);
-            vertices[j] = Transform::transform(vertices[j], translate);
+            vertices[j] = Transform::transform(vertices[j], monkey_transform);
         }
         Triangle triangle(vertices[0], vertices[1], vertices[2]);
 
@@ -63,19 +64,18 @@ int main() {
         renderer.draw_triangle(triangle, camera, buffer);
     }
 
+    Float4 cube_v{-2, 0, 5, 0};
+    Matrix4 cube_translate{Transform::translate(cube_v)};
+
+    Matrix4 cube_rotate_x{Transform::rotate_x(45)};
+    Matrix4 cube_rotate_y{Transform::rotate_y(-35)};
+
+    Matrix4 cube_m = cube_rotate_y * cube_rotate_x * cube_translate;
     for (int i = 0; i < cube.get_face_count(); i++) {
         std::array<Vertex, 3> vertices = cube.get_Face_Vertices(i);
 
-        Float4 v{-2, 0, 5, 0};
-        Matrix4 translate{Transform::translate(v)};
-
-        Matrix4 rotate_x{Transform::rotate_x(45)};
-        Matrix4 rotate_y{Transform::rotate_y(-35)};
-
         for (int j = 0; j < vertices.size(); j++) {
-            vertices[j] = Transform::transform(vertices[j], rotate_y);
-            vertices[j] = Transform::transform(vertices[j], rotate_x);
-            vertices[j] = Transform::transform(vertices[j], translate);
+            vertices[j] = Transform::transform(vertices[j], cube_m);
         }
         Triangle triangle(vertices[0], vertices[1], vertices[2]);
 

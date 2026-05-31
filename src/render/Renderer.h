@@ -1,6 +1,6 @@
-#include "Bresenhams_Line.h"
+#include "../geometry/Triangle.h"
 #include "Camera.h"
-#include "Triangle.h"
+#include "Framebuffer.h"
 
 #ifndef RENDERER_H
 #define RENDERER_H
