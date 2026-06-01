@@ -1,5 +1,9 @@
 #include "Camera.h"
-#include "../structs/Vertex.h"
+
+Camera::Camera(float depth, const Float2 &canvas_dim_in)
+    : pos{Float4{0, 0, 0, 0}}, rotate_x(0), rotate_y(0), VP_depth(depth),
+      VP_height(1), VP_width(canvas_dim_in.x / canvas_dim_in.y),
+      canvas_dim(canvas_dim_in) {}
 
 Float2 Camera::viewport_to_canvas(const Float2 &vp_pos) const {
     // add halve of the canvas dimensions to shift 0/0 to the center of the
@@ -12,4 +16,10 @@ Float2 Camera::viewport_to_canvas(const Float2 &vp_pos) const {
 Float2 Camera::project_Vertex(const Vertex &v) const {
     return viewport_to_canvas(
         Float2(v.pos.x * VP_depth / v.pos.z, v.pos.y * VP_depth / v.pos.z));
+}
+
+Matrix4 Camera::get_transform_matrix() const {
+    return (Transform::rotate_y(rotate_y) * Transform::rotate_x(rotate_x) *
+            Transform::translate(pos))
+        .inv();
 }

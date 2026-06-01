@@ -6,10 +6,11 @@
 
 #define ENDLINE "\n"
 
-// TODO: Add support for only Vertex Objects and Texture coordinates
-Obj::Obj(std::string_view path) {
+Mesh Obj::parse_obj(std::string_view path) {
     std::fstream file(path.data());
     std::string str;
+
+    Mesh out;
 
     while (std::getline(file, str)) {
         std::string temp("");
@@ -34,7 +35,7 @@ Obj::Obj(std::string_view path) {
             z = std::stof(temp);
             temp.clear();
 
-            vertices.push_back(Float4(x, y, z, 1.0f));
+            out.vertices.emplace_back(Float4(x, y, z, 1.0f));
         } else if (str[0] == 'v' && str[1] == 't') {
             float x{0}, y{0};
             int coord_index{0};
@@ -51,7 +52,7 @@ Obj::Obj(std::string_view path) {
             y = std::stof(temp);
             temp.clear();
 
-            texture_coordinates.push_back(Float2(x, y));
+            out.texture_coordinates.emplace_back(Float2(x, y));
         } else if (str[0] == 'v' && str[1] == 'n') {
             float x{0}, y{0}, z{0};
             int coord_index = 0;
@@ -72,7 +73,7 @@ Obj::Obj(std::string_view path) {
             }
             z = std::stof(temp);
             temp.clear();
-            normals.push_back(Float4(x, y, z, 0.0f));
+            out.normals.emplace_back(Float4(x, y, z, 0.0f));
         } else if (str[0] == 'f' && str[1] == ' ') {
             Face face;
             int vert_index{0};
@@ -83,16 +84,14 @@ Obj::Obj(std::string_view path) {
                 if (current_char == ' ') {
                     switch (part_index) {
                     case 0:
-                        face.vertex_index[vert_index++] = std::stoi(temp);
+                        face.vertex_index.at(vert_index++) = std::stoi(temp);
                         break;
                     case 1:
-                        face.texture_coordinate_index[vert_index++] =
+                        face.texture_coordinate_index.at(vert_index++) =
                             std::stoi(temp);
-                        has_texture_coordinates = true;
                         break;
                     case 2:
-                        face.normal_index[vert_index++] = std::stoi(temp);
-                        has_normals = true;
+                        face.normal_index.at(vert_index++) = std::stoi(temp);
                         break;
                     }
                     temp.clear();
@@ -106,12 +105,11 @@ Obj::Obj(std::string_view path) {
                     }
                     switch (part_index) {
                     case 0:
-                        face.vertex_index[vert_index] = std::stoi(temp);
+                        face.vertex_index.at(vert_index) = std::stoi(temp);
                         break;
                     case 1:
-                        face.texture_coordinate_index[vert_index] =
+                        face.texture_coordinate_index.at(vert_index) =
                             std::stoi(temp);
-                        has_texture_coordinates = true;
                         break;
                     }
                     temp.clear();
@@ -120,37 +118,18 @@ Obj::Obj(std::string_view path) {
             }
             switch (part_index) {
             case 0:
-                face.vertex_index[vert_index] = std::stoi(temp);
+                face.vertex_index.at(vert_index) = std::stoi(temp);
                 break;
             case 1:
-                face.texture_coordinate_index[vert_index] = std::stoi(temp);
+                face.texture_coordinate_index.at(vert_index) = std::stoi(temp);
                 break;
             case 2:
-                face.normal_index[vert_index] = std::stoi(temp);
+                face.normal_index.at(vert_index) = std::stoi(temp);
                 break;
             }
             temp.clear();
-            faces.push_back(face);
+            out.faces.emplace_back(face);
         }
     }
+    return out;
 }
-
-std::array<Vertex, 3> Obj::get_Face_Vertices(int i) const {
-    return std::array<Vertex, 3>{
-        Vertex{vertices[faces[i].vertex_index[0] - 1],
-               normals[faces[i].normal_index[0] - 1], Float4(0, 0, 0, 1), 1.0f},
-        Vertex{vertices[faces[i].vertex_index[1] - 1],
-               normals[faces[i].normal_index[1] - 1], Float4(0, 0, 0, 1), 1.0f},
-        Vertex{vertices[faces[i].vertex_index[2] - 1],
-               normals[faces[i].normal_index[2] - 1], Float4(0, 0, 0, 1),
-               1.0f}};
-}
-
-std::array<Float2, 3> Obj::get_Face_Texture_Coordinates(int i) const {
-    return std::array<Float2, 3>{
-        texture_coordinates[faces[i].texture_coordinate_index[0] - 1],
-        texture_coordinates[faces[i].texture_coordinate_index[1] - 1],
-        texture_coordinates[faces[i].texture_coordinate_index[2] - 1]};
-}
-
-int Obj::get_face_count() const { return faces.size(); }

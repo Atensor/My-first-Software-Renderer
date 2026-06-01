@@ -4,7 +4,7 @@
 #define ENDLINE '\n'
 
 void Renderer::draw_triangle(const Triangle &tri, const Camera &camera,
-                             Framebuffer *buffer) {
+                             std::unique_ptr<Framebuffer> &buffer) {
     // Get screenspace Cooridinates
     Float2 a{camera.project_Vertex(tri.vertices[0])},
         b{camera.project_Vertex(tri.vertices[1])},
@@ -18,11 +18,11 @@ void Renderer::draw_triangle(const Triangle &tri, const Camera &camera,
     float y_max{std::max(std::max(a.y, b.y), c.y)};
 
     Float2 bound_min{std::max(x_min, 0.0f), std::max(y_min, 0.0f)};
-    Float2 bound_max{std::min(x_max, (float)buffer->get_width()),
-                     std::min(y_max, (float)buffer->get_height())};
+    Float2 bound_max{std::min(x_max, (float)buffer->get_width() - 1),
+                     std::min(y_max, (float)buffer->get_height() - 1)};
 
-    for (int x = bound_min.x; x <= bound_max.x; x++) {
-        for (int y = bound_min.y; y <= bound_max.y; y++) {
+    for (int x = bound_min.x; x < bound_max.x; x++) {
+        for (int y = bound_min.y; y < bound_max.y; y++) {
             Float3 barycentric_coordinates =
                 tri.get_barycentric_coordinates(a, b, c, Float2(x, y));
             float z{

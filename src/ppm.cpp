@@ -1,9 +1,11 @@
+#include "geometry/SceneObject.h"
 #include "math/Transform.h"
 #include "obj/Obj.h"
 #include "render/Renderer.h"
 #include <algorithm>
 #include <iostream>
 #include <limits>
+#include <memory>
 
 #define ENDLINE "\n"
 
@@ -15,7 +17,8 @@ int main() {
     int width{1920};
     int height{1080};
 
-    Framebuffer *buffer = new Framebuffer(width, height);
+    std::unique_ptr<Framebuffer> buffer =
+        std::make_unique<Framebuffer>(width, height);
 
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
@@ -24,14 +27,10 @@ int main() {
         }
     }
 
-    Obj monkey("monkey.obj");
-    Obj cube("Cube.obj");
+    Mesh monkey_mesh = Obj::parse_obj("monkey.obj");
+    Mesh cube_mesh = Obj::parse_obj("Cube.obj");
 
-    Camera camera;
-    camera.VP_depth = 1;
-    camera.VP_height = 1;
-    camera.VP_width = (float)buffer->get_width() / (float)buffer->get_height();
-    camera.canvas_dim = Float2(buffer->get_width(), buffer->get_height());
+    Camera camera(1, Float2(buffer->get_width(), buffer->get_height()));
 
     Renderer renderer;
 
@@ -44,7 +43,8 @@ int main() {
     Matrix4 monkey_transform =
         monkey_rotate_y * monkey_rotate_x * monkey_translate;
 
-    for (int i = 0; i < monkey.get_face_count(); i++) {
+    SceneObject monkey = SceneObject(&monkey_mesh);
+    for (int i = 0; i < monkey.mesh->faces.size(); i++) {
         std::array<Vertex, 3> vertices = monkey.get_Face_Vertices(i);
 
         for (int j = 0; j < vertices.size(); j++) {
@@ -70,8 +70,9 @@ int main() {
     Matrix4 cube_rotate_x{Transform::rotate_x(45)};
     Matrix4 cube_rotate_y{Transform::rotate_y(-35)};
 
+    SceneObject cube = SceneObject(&cube_mesh);
     Matrix4 cube_m = cube_rotate_y * cube_rotate_x * cube_translate;
-    for (int i = 0; i < cube.get_face_count(); i++) {
+    for (int i = 0; i < cube.mesh->faces.size(); i++) {
         std::array<Vertex, 3> vertices = cube.get_Face_Vertices(i);
 
         for (int j = 0; j < vertices.size(); j++) {
@@ -92,8 +93,6 @@ int main() {
     }
 
     buffer->write_ppm("out.ppm");
-
-    delete buffer;
 
     return 0;
 }

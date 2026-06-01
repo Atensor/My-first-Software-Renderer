@@ -1,4 +1,5 @@
 #include "../math/vector/Float4.h"
+#include <stdint.h>
 #include <string>
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
@@ -18,6 +19,10 @@ class Framebuffer {
     float get_depth(int x, int y) const;
 
     void write_ppm(std::string filename) const;
+
+    void convert_to_uint32_buffer(uint32_t *framebuffer) const;
+
+    void clear();
 
     int get_width() const;
     int get_height() const;

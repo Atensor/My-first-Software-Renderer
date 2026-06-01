@@ -1,0 +1,197 @@
+#include "obj/Obj.h"
+#include "render/Renderer.h"
+#include "render/Scene.h"
+#include <SDL3/SDL.h>
+#include <chrono>
+#include <iostream>
+#include <memory>
+#include <stdint.h>
+
+#include "imgui.h"
+#include "imgui_impl_sdl3.h"
+#include "imgui_impl_sdlrenderer3.h"
+
+int main() {
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        std::cerr << "SDL_Init Failed: " << SDL_GetError() << "\n";
+
+        return 1;
+    }
+
+    constexpr int WIDTH{800}, HEIGHT{600};
+    SDL_Window *window =
+        SDL_CreateWindow("Software Rasterizer", WIDTH, HEIGHT, 0);
+
+    if (!window) {
+        std::cerr << SDL_GetError() << "\n";
+
+        return 1;
+    }
+
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, nullptr);
+
+    SDL_Texture *texture =
+        SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+                          SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);
+
+    uint32_t framebuffer[WIDTH * HEIGHT];
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGuiIO &io = ImGui::GetIO();
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
+    ImGui_ImplSDLRenderer3_Init(renderer);
+
+    std::unique_ptr<Framebuffer> buffer =
+        std::make_unique<Framebuffer>(WIDTH, HEIGHT);
+
+    std::unique_ptr<Scene> scene = std::make_unique<Scene>(
+        Camera(1.0f, Float2{(float)WIDTH, (float)HEIGHT}));
+
+    scene->meshes.emplace_back(
+        std::make_unique<Mesh>(Obj::parse_obj("Cube.obj")));
+    scene->objects.emplace_back(
+        std::make_unique<SceneObject>(SceneObject(scene->meshes.back().get())));
+
+    scene->objects.back()->translate = Float4{-2, 0, 5, 0};
+    scene->objects.back()->rotate_x = 45.0f;
+    scene->objects.back()->rotate_y = -35.0f;
+
+    scene->objects.back()->normals_as_color = true;
+
+    scene->meshes.emplace_back(
+        std::make_unique<Mesh>(Obj::parse_obj("monkey.obj")));
+    scene->objects.emplace_back(
+        std::make_unique<SceneObject>(SceneObject(scene->meshes.back().get())));
+
+    scene->objects.back()->translate = Float4{0.5f, 0, 3, 0};
+    scene->objects.back()->rotate_x = 180.0f;
+    scene->objects.back()->rotate_y = 0.0f;
+
+    scene->objects.back()->normals_as_color = true;
+
+    auto last = std::chrono::high_resolution_clock::now();
+
+    bool running = true;
+
+    while (running) {
+        SDL_Event event;
+
+        while (SDL_PollEvent(&event)) {
+            ImGui_ImplSDL3_ProcessEvent(&event);
+            if (event.type == SDL_EVENT_QUIT) {
+                running = false;
+            }
+        }
+
+        ImGui_ImplSDLRenderer3_NewFrame();
+        ImGui_ImplSDL3_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("Meshes");
+
+        ImGui::Text("Scene Objects");
+        ImGui::Separator();
+
+        static int selected = -1;
+
+        // ---- Scene list ----
+        for (int i = 0; i < scene->objects.size(); i++) {
+
+            SceneObject *obj = scene->objects[i].get();
+
+            char label[64];
+            std::snprintf(label, sizeof(label), "Mesh %d", i);
+
+            if (ImGui::Selectable(label, selected == i)) {
+                selected = i;
+            }
+        }
+
+        ImGui::Separator();
+
+        // ---- Inspector ----
+        if (selected >= 0 && selected < scene->objects.size()) {
+
+            SceneObject *obj = scene->objects[selected].get();
+
+            ImGui::Text("Inspector");
+            ImGui::Separator();
+
+            ImGui::Text("Transform");
+
+            ImGui::DragFloat3("Position", &obj->translate.x, 0.1f);
+
+            ImGui::DragFloat2("Rotation on x", &obj->rotate_x, 0.1f);
+
+            ImGui::Separator();
+
+            ImGui::Text("Mesh Info");
+
+            if (obj->mesh) {
+                ImGui::Text("Vertices: %zu", obj->mesh->vertices.size());
+                ImGui::Text("Faces: %zu", obj->mesh->faces.size());
+            } else {
+                ImGui::Text("No mesh assigned");
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::Button("Delete")) {
+                scene->objects.erase(scene->objects.begin() + selected);
+                selected = -1;
+            }
+        }
+
+        ImGui::End();
+
+        ImGui::Begin("Performance");
+
+        // ---- FPS / frame timing ----
+        float deltaTime = ImGui::GetIO().DeltaTime;
+        float fps = 1.0f / deltaTime;
+
+        ImGui::Text("FPS: %.1f", fps);
+        ImGui::Text("Frame Time: %.3f ms", deltaTime * 1000.0f);
+
+        // ---- optional: scene stats ----
+        ImGui::Separator();
+
+        ImGui::Text("Objects: %zu", scene->objects.size());
+
+        // If you have mesh stats:
+        size_t triangles = 0;
+        for (auto &obj : scene->objects) {
+            if (obj->mesh)
+                triangles += obj->mesh->faces.size();
+        }
+
+        ImGui::Text("Triangles: %zu", triangles);
+
+        ImGui::End();
+
+        scene->render(buffer);
+
+        buffer->convert_to_uint32_buffer(framebuffer);
+        buffer->clear();
+
+        SDL_UpdateTexture(texture, nullptr, framebuffer,
+                          WIDTH * sizeof(uint32_t));
+
+        SDL_RenderClear(renderer);
+        SDL_RenderTexture(renderer, texture, nullptr, nullptr);
+
+        ImGui::Render();
+        ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
+
+        SDL_RenderPresent(renderer);
+    }
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+}
