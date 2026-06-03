@@ -17,7 +17,7 @@ int main() {
         return 1;
     }
 
-    constexpr int WIDTH{800}, HEIGHT{600};
+    constexpr int WIDTH{1920}, HEIGHT{1080};
     SDL_Window *window =
         SDL_CreateWindow("Software Rasterizer", WIDTH, HEIGHT, 0);
 
@@ -56,6 +56,7 @@ int main() {
     scene->objects.emplace_back(
         std::make_unique<SceneObject>(SceneObject(scene->meshes.back().get())));
 
+    scene->objects.back()->normals_as_color = true;
     scene->objects.back()->translate = Float4{-2, 0, 5, 0};
     scene->objects.back()->rotate_x = 45.0f;
     scene->objects.back()->rotate_y = -35.0f;
@@ -67,6 +68,8 @@ int main() {
     scene->objects.emplace_back(
         std::make_unique<SceneObject>(SceneObject(scene->meshes.back().get())));
 
+    scene->objects.back()->color = Float4(
+        0.3921568627450980f, 0.5843137254901961f, 0.9294117647058824f, 1.0f);
     scene->objects.back()->translate = Float4{0.5f, 0, 3, 0};
     scene->objects.back()->rotate_x = 180.0f;
     scene->objects.back()->rotate_y = 0.0f;
