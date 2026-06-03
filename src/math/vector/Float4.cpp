@@ -9,7 +9,7 @@ Float4::Float4(float x, float y, float z, float w) : x{x}, y{y}, z{z}, w{w} {}
 Float4::Float4(const Float3 &a, float w) : x{a.x}, y{a.y}, z{a.z}, w{w} {}
 
 Float4 Float4::operator+(const Float4 &a) const {
-    return Float4{x + a.x, y + a.y, z + a.z, w + a.w};
+    return Float4{x + a.x, y + a.y, z + a.z, a.w};
 };
 
 Float4 Float4::operator-(const Float4 &a) const {

@@ -1,10 +1,14 @@
 #include "Renderer.h"
+#include "../geometry/Bresenhams_Line.h"
 #include <iostream>
 
 #define ENDLINE '\n'
 
 void Renderer::draw_triangle(const Triangle &tri, const Camera &camera,
-                             std::unique_ptr<Framebuffer> &buffer) {
+                             std::unique_ptr<Framebuffer> &buffer,
+                             bool use_culling) {
+    if (Float4::dot(tri.surface_normal, Float4(0, 0, 1, 0)) > 0 && use_culling)
+        return;
     // Get screenspace Cooridinates
     Float2 a{camera.project_Vertex(tri.vertices[0])},
         b{camera.project_Vertex(tri.vertices[1])},
@@ -41,6 +45,12 @@ void Renderer::draw_triangle(const Triangle &tri, const Camera &camera,
     }
 }
 
-// TODO: implement
-void Renderer::draw_line(const Float3 &a, const Float3 &b, const Float3 &color,
-                         const Camera &camera, Framebuffer *buffer) {}
+void Renderer::draw_line(const Float4 &a, const Float4 &b, const Float4 &color,
+                         const Camera &camera, Framebuffer *buffer) {
+    Float2 a_screen{
+        camera.project_Vertex(Vertex{a, Float4(0, 0, 0, 0), color, 1.0f})};
+    Float2 b_screen{
+        camera.project_Vertex(Vertex{b, Float4(0, 0, 0, 0), color, 1.0f})};
+
+    Bresenhams_Line::draw_line(a_screen, b_screen, color, buffer);
+}

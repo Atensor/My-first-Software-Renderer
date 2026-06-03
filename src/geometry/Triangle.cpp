@@ -2,10 +2,9 @@
 #include <algorithm>
 #include <cmath>
 
-Triangle::Triangle(const Vertex &a, const Vertex &b, const Vertex &c)
-    : vertices{a, b, c},
-      surface_normal{Float4::scale(a.normal + b.normal + c.normal, 1.0f / 3.0f)
-                         .normalize()} {}
+Triangle::Triangle(const Vertex &a, const Vertex &b, const Vertex &c,
+                   const Float4 &surface_normal)
+    : vertices{a, b, c}, surface_normal{surface_normal} {}
 
 Float4 Triangle::get_color(const Float2 &a, const Float2 &b, const Float2 &c,
                            const Float2 &x,

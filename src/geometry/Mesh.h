@@ -1,4 +1,3 @@
-#include "../math/vector/Float4.h"
 #include "Face.h"
 #include <vector>
 

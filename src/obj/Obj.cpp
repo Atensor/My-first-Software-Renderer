@@ -6,6 +6,29 @@
 
 #define ENDLINE "\n"
 
+Float4 face_normal(const Float3 &a, const Float3 &b, const Float3 &c) {
+    Float3 ab(b - a), ac(c - a);
+
+    return Float4(Float3::cross(ab, ac).normalize(), 0.0f);
+}
+
+Mesh Obj::calculate_normals(const Mesh &mesh) {
+    Mesh out = mesh;
+    for (int i = -1; auto &face : mesh.faces) {
+        Float4 surface_normal =
+            face_normal(mesh.vertices.at(face.vertex_index.at(0) - 1).xyz(),
+                        mesh.vertices.at(face.vertex_index.at(1) - 1).xyz(),
+                        mesh.vertices.at(face.vertex_index.at(2) - 1).xyz());
+
+        for (auto &normal_index : face.normal_index) {
+            out.normals.at(normal_index - 1) =
+                (out.normals.at(normal_index - 1) + surface_normal).normalize();
+        }
+        out.faces.at(++i).surface_normal = surface_normal;
+    }
+    return out;
+}
+
 Mesh Obj::parse_obj(std::string_view path) {
     std::fstream file(path.data());
     std::string str;
@@ -131,5 +154,6 @@ Mesh Obj::parse_obj(std::string_view path) {
             out.faces.emplace_back(face);
         }
     }
-    return out;
+
+    return Obj::calculate_normals(out);
 }

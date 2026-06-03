@@ -39,18 +39,19 @@ int main() {
 
     Matrix4 monkey_rotate_x{Transform::rotate_x(180)};
     Matrix4 monkey_rotate_y{Transform::rotate_y(0)};
-
-    Matrix4 monkey_transform =
-        monkey_rotate_y * monkey_rotate_x * monkey_translate;
+    Matrix4 monkey_rotate{monkey_rotate_y * monkey_rotate_x};
 
     SceneObject monkey = SceneObject(&monkey_mesh);
     for (int i = 0; i < monkey.mesh->faces.size(); i++) {
         std::array<Vertex, 3> vertices = monkey.get_Face_Vertices(i);
 
         for (int j = 0; j < vertices.size(); j++) {
-            vertices[j] = Transform::transform(vertices[j], monkey_transform);
+            vertices[j] = Transform::transform(vertices[j], monkey_translate,
+                                               monkey_rotate);
         }
-        Triangle triangle(vertices[0], vertices[1], vertices[2]);
+        Triangle triangle(vertices[0], vertices[1], vertices[2],
+                          monkey_rotate *
+                              monkey_mesh.faces.at(i).surface_normal);
 
         Float4 face_color = Float4{
             Float3::scale(triangle.surface_normal.xyz() + Float3{1, 1, 1},
@@ -69,16 +70,18 @@ int main() {
 
     Matrix4 cube_rotate_x{Transform::rotate_x(45)};
     Matrix4 cube_rotate_y{Transform::rotate_y(-35)};
+    Matrix4 cube_rotate{cube_rotate_y * cube_rotate_x};
 
     SceneObject cube = SceneObject(&cube_mesh);
-    Matrix4 cube_m = cube_rotate_y * cube_rotate_x * cube_translate;
     for (int i = 0; i < cube.mesh->faces.size(); i++) {
         std::array<Vertex, 3> vertices = cube.get_Face_Vertices(i);
 
         for (int j = 0; j < vertices.size(); j++) {
-            vertices[j] = Transform::transform(vertices[j], cube_m);
+            vertices[j] =
+                Transform::transform(vertices[j], cube_translate, cube_rotate);
         }
-        Triangle triangle(vertices[0], vertices[1], vertices[2]);
+        Triangle triangle(vertices[0], vertices[1], vertices[2],
+                          cube_rotate * cube_mesh.faces.at(i).surface_normal);
 
         Float4 face_color = Float4{
             Float3::scale(triangle.surface_normal.xyz() + Float3{1, 1, 1},

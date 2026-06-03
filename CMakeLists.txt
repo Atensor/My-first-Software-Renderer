@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 project(software_renderer)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENTIONS ON)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -O0")
 
@@ -39,6 +40,7 @@ target_include_directories(obj_lib PUBLIC src)
 add_library(geometry_lib
     src/geometry/Triangle.cpp
     src/geometry/SceneObject.cpp
+    src/geometry/Bresenhams_Line.cpp
 )
 
 target_include_directories(geometry_lib PUBLIC src)

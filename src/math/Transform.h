@@ -12,7 +12,13 @@ struct Transform {
 
     static Matrix4 translate(const Float4 &a);
 
-    static Vertex transform(const Vertex &v, const Matrix4 &m);
+    static Matrix4 scale(float scalar);
+
+    static Vertex transform(const Vertex &v, const Matrix4 &translate,
+                            const Matrix4 &rotation, const Matrix4 &scale);
+
+    static Vertex transform(const Vertex &v, const Matrix4 &translate,
+                            const Matrix4 &rotation);
 };
 
 #endif

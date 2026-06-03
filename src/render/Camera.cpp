@@ -18,8 +18,16 @@ Float2 Camera::project_Vertex(const Vertex &v) const {
         Float2(v.pos.x * VP_depth / v.pos.z, v.pos.y * VP_depth / v.pos.z));
 }
 
+Vertex Camera::to_viewspace(const Vertex &v) const {
+    return Transform::transform(v, get_transform_matrix(),
+                                get_rotation_matrix());
+}
+
 Matrix4 Camera::get_transform_matrix() const {
-    return (Transform::rotate_y(rotate_y) * Transform::rotate_x(rotate_x) *
-            Transform::translate(pos))
+    return Transform::translate(pos).inv();
+}
+
+Matrix4 Camera::get_rotation_matrix() const {
+    return (Transform::rotate_y(rotate_y) * Transform::rotate_x(rotate_x))
         .inv();
 }

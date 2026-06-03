@@ -8,7 +8,8 @@ struct Triangle {
 
     Float4 surface_normal;
 
-    Triangle(const Vertex &a, const Vertex &b, const Vertex &c);
+    Triangle(const Vertex &a, const Vertex &b, const Vertex &c,
+             const Float4 &surface_normal);
 
     Float4 get_color(const Float2 &a, const Float2 &b, const Float2 &c,
                      const Float2 &x,

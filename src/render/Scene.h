@@ -13,6 +13,10 @@ struct Scene {
 
     Float4 sky_light_dir;
 
+    bool use_lighting;
+    bool use_culling;
+    bool draw_normals;
+
     Scene(const Camera &camera);
 
     void render(std::unique_ptr<Framebuffer> &buffer) const;

@@ -2,7 +2,6 @@
 #include "render/Renderer.h"
 #include "render/Scene.h"
 #include <SDL3/SDL.h>
-#include <chrono>
 #include <iostream>
 #include <memory>
 #include <stdint.h>
@@ -39,8 +38,6 @@ int main() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
-    ImGuiIO &io = ImGui::GetIO();
-
     ImGui::StyleColorsDark();
 
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
@@ -51,6 +48,8 @@ int main() {
 
     std::unique_ptr<Scene> scene = std::make_unique<Scene>(
         Camera(1.0f, Float2{(float)WIDTH, (float)HEIGHT}));
+    scene->sky_light_dir = Float4(1, -1, -1, 0);
+    scene->use_lighting = true;
 
     scene->meshes.emplace_back(
         std::make_unique<Mesh>(Obj::parse_obj("Cube.obj")));
@@ -61,7 +60,7 @@ int main() {
     scene->objects.back()->rotate_x = 45.0f;
     scene->objects.back()->rotate_y = -35.0f;
 
-    scene->objects.back()->normals_as_color = true;
+    scene->objects.back()->draw = false;
 
     scene->meshes.emplace_back(
         std::make_unique<Mesh>(Obj::parse_obj("monkey.obj")));
@@ -71,10 +70,6 @@ int main() {
     scene->objects.back()->translate = Float4{0.5f, 0, 3, 0};
     scene->objects.back()->rotate_x = 180.0f;
     scene->objects.back()->rotate_y = 0.0f;
-
-    scene->objects.back()->normals_as_color = true;
-
-    auto last = std::chrono::high_resolution_clock::now();
 
     bool running = true;
 
@@ -102,8 +97,6 @@ int main() {
         // ---- Scene list ----
         for (int i = 0; i < scene->objects.size(); i++) {
 
-            SceneObject *obj = scene->objects[i].get();
-
             char label[64];
             std::snprintf(label, sizeof(label), "Mesh %d", i);
 
@@ -111,6 +104,12 @@ int main() {
                 selected = i;
             }
         }
+
+        ImGui::Checkbox("use Lighting", &scene->use_lighting);
+
+        ImGui::Checkbox("use culling", &scene->use_culling);
+
+        ImGui::Checkbox("Draw normals", &scene->draw_normals);
 
         ImGui::Separator();
 
@@ -122,11 +121,17 @@ int main() {
             ImGui::Text("Inspector");
             ImGui::Separator();
 
+            ImGui::Checkbox("Draw Object", &obj->draw);
+
+            ImGui::Checkbox("Use normals as color", &obj->normals_as_color);
+
             ImGui::Text("Transform");
 
             ImGui::DragFloat3("Position", &obj->translate.x, 0.1f);
 
-            ImGui::DragFloat2("Rotation on x", &obj->rotate_x, 0.1f);
+            ImGui::DragFloat("Scale", &obj->scalar, 0.1f);
+
+            ImGui::DragFloat2("Rotation", &obj->rotate_x, 0.1f);
 
             ImGui::Separator();
 
@@ -171,6 +176,16 @@ int main() {
         }
 
         ImGui::Text("Triangles: %zu", triangles);
+
+        ImGui::End();
+
+        ImGui::Begin("Camera");
+
+        ImGui::DragFloat3("Position", &scene->camera.pos.x, 0.1f);
+
+        ImGui::DragFloat2("Rotation", &scene->camera.rotate_x, 0.1f);
+
+        ImGui::DragFloat3("Sky Light dir", &scene->sky_light_dir.x, 0.1f);
 
         ImGui::End();
 

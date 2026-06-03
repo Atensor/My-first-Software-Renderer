@@ -1,8 +1,9 @@
 #include "SceneObject.h"
 
 SceneObject::SceneObject(Mesh *mesh)
-    : mesh(mesh), translate(Float4(0, 0, 0, 1)), rotate_x(0.0f), rotate_y(0.0f),
-      normals_as_color(false), color(Float4(1, 1, 1, 1)) {}
+    : mesh(mesh), translate(Float4(0, 0, 0, 1)), scalar(1.0f), rotate_x(0.0f),
+      rotate_y(0.0f), normals_as_color(false), draw(true),
+      color(Float4(1, 1, 1, 1)) {}
 
 SceneObject::~SceneObject() = default;
 
@@ -29,7 +30,14 @@ std::array<Float2, 3> SceneObject::get_Face_Texture_Coordinates(int i) const {
             mesh->faces.at(i).texture_coordinate_index.at(2) - 1)};
 }
 
-Matrix4 SceneObject::get_transform_matrix() const {
-    return Transform::rotate_y(rotate_y) * Transform::rotate_x(rotate_x) *
-           Transform::translate(translate);
+Matrix4 SceneObject::get_translation_matrix() const {
+    return Transform::translate(translate);
+}
+
+Matrix4 SceneObject::get_rotation_matrix() const {
+    return Transform::rotate_y(rotate_y) * Transform::rotate_x(rotate_x);
+}
+
+Matrix4 SceneObject::get_scalar_matrix() const {
+    return Transform::scale(scalar);
 }
