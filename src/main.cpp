@@ -61,7 +61,7 @@ int main() {
     scene->objects.back()->rotate_x = 45.0f;
     scene->objects.back()->rotate_y = -35.0f;
 
-    scene->objects.back()->draw = false;
+    scene->objects.back()->draw = true;
 
     scene->meshes.emplace_back(
         std::make_unique<Mesh>(Obj::parse_obj("monkey.obj")));
@@ -73,6 +73,8 @@ int main() {
     scene->objects.back()->translate = Float4{0.5f, 0, 3, 0};
     scene->objects.back()->rotate_x = 180.0f;
     scene->objects.back()->rotate_y = 0.0f;
+
+    scene->objects.back()->draw = false;
 
     bool running = true;
 
@@ -194,10 +196,7 @@ int main() {
 
         scene->render(buffer);
 
-        buffer->convert_to_uint32_buffer(framebuffer);
-        buffer->clear();
-
-        SDL_UpdateTexture(texture, nullptr, framebuffer,
+        SDL_UpdateTexture(texture, nullptr, buffer->buffer,
                           WIDTH * sizeof(uint32_t));
 
         SDL_RenderClear(renderer);
@@ -207,6 +206,7 @@ int main() {
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
 
         SDL_RenderPresent(renderer);
+        buffer->clear();
     }
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);

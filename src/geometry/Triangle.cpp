@@ -6,9 +6,11 @@ Triangle::Triangle(const Vertex &a, const Vertex &b, const Vertex &c,
                    const Float4 &surface_normal)
     : vertices{a, b, c}, surface_normal{surface_normal} {}
 
-Float4 Triangle::get_color(const Float2 &a, const Float2 &b, const Float2 &c,
-                           const Float2 &x,
-                           const Float3 &barycentric_coordinates) const {
+Triangle::Triangle(const std::array<Vertex, 3> &vertices,
+                   const Float4 &surface_normal)
+    : vertices(vertices), surface_normal(surface_normal) {}
+
+Float4 Triangle::get_color(const Float3 &barycentric_coordinates) const {
 
     // inverse of the depth at the current pixel
     float inv_z{(barycentric_coordinates.x / vertices[0].pos.z) +

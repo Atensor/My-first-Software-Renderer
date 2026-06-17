@@ -4,14 +4,15 @@
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 
-class Framebuffer {
+struct Framebuffer {
   private:
     int m_width{};
     int m_height{};
-    Float4 *m_buffer;
-    float *m_depth_buffer;
 
   public:
+    uint32_t *buffer;
+    float *depth_buffer;
+
     Framebuffer(int width, int height);
     ~Framebuffer();
 

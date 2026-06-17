@@ -25,11 +25,9 @@ struct SceneObject {
     std::array<Vertex, 3> get_Face_Vertices(int i) const;
     std::array<Float2, 3> get_Face_Texture_Coordinates(int i) const;
 
-    Matrix4 get_translation_matrix() const;
+    Matrix4 get_transform_matrix() const;
 
     Matrix4 get_rotation_matrix() const;
-
-    Matrix4 get_scalar_matrix() const;
 };
 
 #endif

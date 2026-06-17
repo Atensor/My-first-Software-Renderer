@@ -36,18 +36,10 @@ Matrix4 Transform::scale(float s) {
                                              {0.0f, 0.0f, 0.0f, 1.0f}}}};
 }
 
-Vertex Transform::transform(const Vertex &v, const Matrix4 &translate,
-                            const Matrix4 &rotation, const Matrix4 &scale) {
-    Vertex out{v};
-    out.pos = scale * rotation * translate * v.pos;
-    out.normal = (rotation * v.normal).normalize();
-    return out;
-}
-
-Vertex Transform::transform(const Vertex &v, const Matrix4 &translate,
+Vertex Transform::transform(const Vertex &v, const Matrix4 &tranform,
                             const Matrix4 &rotation) {
     Vertex out{v};
-    out.pos = rotation * translate * v.pos;
+    out.pos = tranform * v.pos;
     out.normal = (rotation * v.normal).normalize();
     return out;
 }
