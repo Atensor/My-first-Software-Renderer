@@ -12,3 +12,5 @@ A renderd Scene with Suzanne and a cube:
 
 
 For the window i used SDL3 and for the Debug ui imgui with The SDL3 backend.
+
+3D Objects need to be triangulated and be winded consistently to be properly parsed and renderd
