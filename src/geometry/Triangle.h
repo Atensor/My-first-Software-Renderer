@@ -19,7 +19,5 @@ struct Triangle {
     static float get_area(const Float2 &a, const Float2 &b, const Float2 &c);
     static Float3 get_barycentric_coordinates(const Float2 &a, const Float2 &b,
                                               const Float2 &c, const Float2 &x);
-
-    bool is_inside(int x, int y, const std::array<Float2, 3> &vertices) const;
 };
 #endif

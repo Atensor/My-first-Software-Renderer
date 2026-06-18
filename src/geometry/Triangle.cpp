@@ -61,23 +61,3 @@ Float3 Triangle::get_barycentric_coordinates(const Float2 &a, const Float2 &b,
 
     return Float3{area_bcx / area, area_acx / area, area_abx / area};
 }
-
-float get_side(const Float2 &a, const Float2 &b, int x, int y) {
-    return Float2::cross(b - a, Float2(x, y) - a);
-}
-
-bool Triangle::is_inside(int x, int y,
-                         const std::array<Float2, 3> &vertices) const {
-    bool has_pos{false};
-    bool has_neg{false};
-    for (int i = 0; i < vertices.size(); i++) {
-        float cross(
-            get_side(vertices[i], vertices[(i + 1) % vertices.size()], x, y));
-        has_pos |= (cross >= 0);
-        has_neg |= (cross < 0);
-        if (has_pos && has_neg) {
-            return false;
-        }
-    }
-    return true;
-}

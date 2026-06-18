@@ -4,11 +4,11 @@
 #define CAMERA_H
 struct Camera {
     Float4 pos;
+    Float2 canvas_dim;
 
     float rotate_x;
     float rotate_y;
 
-    Float2 canvas_dim;
     float VP_depth;
     float VP_height;
     float VP_width;

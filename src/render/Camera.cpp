@@ -1,12 +1,12 @@
 #include "Camera.h"
 
 Camera::Camera(float depth, const Float2 &canvas_dim_in)
-    : pos{Float4{0, 0, 0, 0}}, rotate_x(0), rotate_y(0), VP_depth(depth),
-      VP_height(1), VP_width(canvas_dim_in.x / canvas_dim_in.y),
-      canvas_dim(canvas_dim_in) {}
+    : pos{Float4{0, 0, 0, 0}}, canvas_dim(canvas_dim_in), rotate_x(0),
+      rotate_y(0), VP_depth(depth), VP_height(1),
+      VP_width(canvas_dim_in.x / canvas_dim_in.y) {}
 
 Float2 Camera::viewport_to_canvas(const Float2 &vp_pos) const {
-    // add halve of the canvas dimensions to shift 0/0 to the center of the
+    // add half of the canvas dimensions to shift 0/0 to the center of the
     // canvas
     return Float2(vp_pos.x * canvas_dim.x / VP_width,
                   vp_pos.y * canvas_dim.y / VP_height) +

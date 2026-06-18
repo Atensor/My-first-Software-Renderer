@@ -1,5 +1,4 @@
 #include "Scene.h"
-#include <iostream>
 
 Scene::Scene(const Camera &camera)
     : camera(camera), use_lighting(true), use_culling(true),
@@ -11,6 +10,8 @@ void Scene::render(std::unique_ptr<Framebuffer> &buffer) const {
             continue;
         }
 
+        // Calculating tranform Matrices as M = T * R * S
+        // Seperate Rotation Matrix for normals
         Matrix4 transform = object->get_transform_matrix();
         Matrix4 rotation = object->get_rotation_matrix();
 
@@ -33,7 +34,6 @@ void Scene::render(std::unique_ptr<Framebuffer> &buffer) const {
                              1.0f}
                     : object->color;
 
-            // TODO: make a proper light interpolation
             if (use_lighting) {
                 for (int l = -1; auto &vertex : vertices) {
                     float light_dot(Float3::dot(
@@ -53,6 +53,7 @@ void Scene::render(std::unique_ptr<Framebuffer> &buffer) const {
                              face.surface_normal),
                 camera, buffer, use_culling);
 
+            // Drawing normals of the triangles for Debug
             if (draw_normals) {
                 Float4 center(0.0f, 0.0f, 0.0f, 0.0f);
                 for (Vertex v : vertices) {

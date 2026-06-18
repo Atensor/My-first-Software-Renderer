@@ -17,7 +17,7 @@ int main() {
         return 1;
     }
 
-    constexpr int WIDTH{1920}, HEIGHT{1080};
+    constexpr int WIDTH{800}, HEIGHT{600};
     SDL_Window *window =
         SDL_CreateWindow("Software Rasterizer", WIDTH, HEIGHT, 0);
 
@@ -32,8 +32,6 @@ int main() {
     SDL_Texture *texture =
         SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                           SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);
-
-    uint32_t framebuffer[WIDTH * HEIGHT];
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -51,6 +49,7 @@ int main() {
     scene->sky_light_dir = Float4(1, -1, -1, 0);
     scene->use_lighting = true;
 
+    // Cube Object
     scene->meshes.emplace_back(
         std::make_unique<Mesh>(Obj::parse_obj("Cube.obj")));
     scene->objects.emplace_back(
@@ -60,9 +59,11 @@ int main() {
     scene->objects.back()->translate = Float4{-2, 0, 5, 0};
     scene->objects.back()->rotate_x = 45.0f;
     scene->objects.back()->rotate_y = -35.0f;
+    scene->objects.back()->scalar = 0.8f;
 
     scene->objects.back()->draw = true;
 
+    // Monkey object
     scene->meshes.emplace_back(
         std::make_unique<Mesh>(Obj::parse_obj("monkey.obj")));
     scene->objects.emplace_back(
@@ -74,7 +75,7 @@ int main() {
     scene->objects.back()->rotate_x = 180.0f;
     scene->objects.back()->rotate_y = 0.0f;
 
-    scene->objects.back()->draw = false;
+    scene->objects.back()->draw = true;
 
     bool running = true;
 

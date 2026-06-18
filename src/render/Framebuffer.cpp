@@ -46,10 +46,6 @@ void Framebuffer::clear() {
     }
 }
 
-float Framebuffer::get_depth(int x, int y) const {
-    return depth_buffer[x + y * m_width];
-}
-
 void Framebuffer::write_ppm(std::string filename) const {
     std::ofstream file;
     file.open(filename);

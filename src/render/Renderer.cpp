@@ -1,7 +1,5 @@
 #include "Renderer.h"
 #include "../geometry/Bresenhams_Line.h"
-#include <chrono>
-#include <iostream>
 
 #define ENDLINE '\n'
 
@@ -31,43 +29,30 @@ void Renderer::draw_triangle(const Triangle &tri, const Camera &camera,
     for (int x = bound_min.x; x < bound_max.x; x++) {
         for (int y = bound_min.y; y < bound_max.y; y++) {
 
-            /*
-            std::chrono::time_point<std::chrono::high_resolution_clock> before =
-                std::chrono::high_resolution_clock::now();
-            std::chrono::time_point<std::chrono::high_resolution_clock> after;
-            */
             Float3 barycentric_coordinates =
                 tri.get_barycentric_coordinates(a, b, c, Float2(x, y));
+            // if a point is outside the Triangle (barycentric coordinate
+            // negetive) skip this point
             if (barycentric_coordinates.x < 0 ||
                 barycentric_coordinates.y < 0 ||
                 barycentric_coordinates.z < 0) {
                 continue;
             }
+
+            // interpolating the depth
             float z{
                 Float3::dot(barycentric_coordinates,
                             Float3{tri.vertices[0].pos.z, tri.vertices[1].pos.z,
                                    tri.vertices[2].pos.z})};
 
-            if (z < camera.VP_depth) {
+            if (z < camera.VP_depth &&
+                z > buffer->depth_buffer[x + y * buffer->get_width()]) {
                 continue;
             }
-            /*
-            after = std::chrono::high_resolution_clock::now();
-            std::cout << "barycentric: " << after - before << "\n";
-            before = after;
-            */
+
             Float4 color(tri.get_color(barycentric_coordinates));
-            /*
-            after = std::chrono::high_resolution_clock::now();
-            std::cout << "color: " << after - before << "\n";
-            before = after;
-            */
+
             buffer->write_pixel(x, y, color, z);
-            /*
-            after = std::chrono::high_resolution_clock::now();
-            std::cout << "pixel write: " << after - before << "\n";
-            before = after;
-            */
         }
     }
 }
