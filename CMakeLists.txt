@@ -81,9 +81,3 @@ add_executable(main
 )
 
 target_link_libraries(main PRIVATE render_lib obj_lib imgui)
-
-add_executable(testing 
-    src/Testing/matrix.cpp
-)
-
-target_link_libraries(testing PRIVATE math_lib)
