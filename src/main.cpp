@@ -10,207 +10,242 @@
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
 
+constexpr int WIDTH{800}, HEIGHT{600};
+constexpr int RENDER_WIDTH{800}, RENDER_HEIGHT{600};
+
 int main() {
-  if (!SDL_Init(SDL_INIT_VIDEO)) {
-    std::cerr << "SDL_Init Failed: " << SDL_GetError() << "\n";
+	// ========================================================================
+	// Window init
+	// ========================================================================
+	if (!SDL_Init(SDL_INIT_VIDEO)) {
+		std::cerr << "SDL_Init Failed: " << SDL_GetError() << "\n";
+
+		return 1;
+	}
+
+	SDL_Window *window = SDL_CreateWindow("Software Renderer", WIDTH, HEIGHT,
+	                                      SDL_WINDOW_RESIZABLE);
+	if (!window) {
+		std::cerr << "SDL_CreateWindow failed: " << SDL_GetError() << '\n';
+
+		SDL_Quit();
+		return 1;
+	}
+	SDL_MaximizeWindow(window);
+
+	SDL_Renderer *renderer = SDL_CreateRenderer(window, nullptr);
+
+	if (!renderer) {
+		std::cerr << "SDL_CreateRenderer failed: " << SDL_GetError() << '\n';
+
+		SDL_DestroyWindow(window);
+		SDL_Quit();
+		return 1;
+	}
+
+	SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+	                                         SDL_TEXTUREACCESS_STREAMING,
+	                                         RENDER_WIDTH, RENDER_HEIGHT);
 
-    return 1;
-  }
+	if (!texture) {
+		std::cerr << "SDL_CreateTexture failed: " << SDL_GetError() << '\n';
 
-  constexpr int WIDTH{800}, HEIGHT{600};
-  SDL_Window *window =
-      SDL_CreateWindow("Software Rasterizer", WIDTH, HEIGHT, 0);
+		SDL_DestroyRenderer(renderer);
+		SDL_DestroyWindow(window);
+		SDL_Quit();
+		return 1;
+	}
 
-  if (!window) {
-    std::cerr << SDL_GetError() << "\n";
+	// ========================================================================
+	// ImGui init
+	// ========================================================================
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
 
-    return 1;
-  }
+	ImGui::StyleColorsDark();
 
-  SDL_Renderer *renderer = SDL_CreateRenderer(window, nullptr);
+	ImGuiIO &io = ImGui::GetIO();
 
-  SDL_Texture *texture =
-      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
-                        SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
+	if (!ImGui_ImplSDL3_InitForSDLRenderer(window, renderer)) {
+		std::cerr << "ImGui SDL3 initialization failed\n";
+		return 1;
+	}
 
-  ImGui::StyleColorsDark();
+	if (!ImGui_ImplSDLRenderer3_Init(renderer)) {
+		std::cerr << "ImGui SDL renderer initialization failed\n";
+		return 1;
+	}
 
-  ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
-  ImGui_ImplSDLRenderer3_Init(renderer);
+	// ========================================================================
+	// Renderer init
+	// ========================================================================
+	std::unique_ptr<Framebuffer> buffer =
+	    std::make_unique<Framebuffer>(RENDER_WIDTH, RENDER_HEIGHT);
 
-  std::unique_ptr<Framebuffer> buffer =
-      std::make_unique<Framebuffer>(WIDTH, HEIGHT);
+	std::unique_ptr<Scene> scene = std::make_unique<Scene>(
+	    Camera(1.0f, Float2{(float)RENDER_WIDTH, (float)RENDER_HEIGHT}));
+	scene->sky_light_dir = Float4(1, -1, -1, 0);
+	scene->use_lighting = true;
 
-  std::unique_ptr<Scene> scene = std::make_unique<Scene>(
-      Camera(1.0f, Float2{(float)WIDTH, (float)HEIGHT}));
-  scene->sky_light_dir = Float4(1, -1, -1, 0);
-  scene->use_lighting = true;
+	// Cube Object
+	scene->meshes.emplace_back(
+	    std::make_unique<Mesh>(Obj::parse_obj("Cube_regenerated.obj")));
+	scene->objects.emplace_back(
+	    std::make_unique<SceneObject>(SceneObject(scene->meshes.back().get())));
 
-  // Cube Object
-  scene->meshes.emplace_back(
-      std::make_unique<Mesh>(Obj::parse_obj("Cube_regenerated.obj")));
-  scene->objects.emplace_back(
-      std::make_unique<SceneObject>(SceneObject(scene->meshes.back().get())));
+	scene->objects.back()->normals_as_color = true;
+	scene->objects.back()->translate = Float4{-2, 0, 5, 0};
+	scene->objects.back()->rotate_x = 45.0f;
+	scene->objects.back()->rotate_y = -35.0f;
+	scene->objects.back()->scalar = 0.8f;
 
-  scene->objects.back()->normals_as_color = true;
-  scene->objects.back()->translate = Float4{-2, 0, 5, 0};
-  scene->objects.back()->rotate_x = 45.0f;
-  scene->objects.back()->rotate_y = -35.0f;
-  scene->objects.back()->scalar = 0.8f;
+	scene->objects.back()->draw = true;
 
-  scene->objects.back()->draw = true;
+	// Monkey object
+	scene->meshes.emplace_back(
+	    std::make_unique<Mesh>(Obj::parse_obj("monkey_regenerated.obj")));
+	scene->objects.emplace_back(
+	    std::make_unique<SceneObject>(SceneObject(scene->meshes.back().get())));
 
-  // Monkey object
-  scene->meshes.emplace_back(
-      std::make_unique<Mesh>(Obj::parse_obj("monkey_regenerated.obj")));
-  scene->objects.emplace_back(
-      std::make_unique<SceneObject>(SceneObject(scene->meshes.back().get())));
+	scene->objects.back()->color = Float4(
+	    0.3921568627450980f, 0.5843137254901961f, 0.9294117647058824f, 1.0f);
+	scene->objects.back()->translate = Float4{0.5f, 0, 3, 0};
+	scene->objects.back()->rotate_x = 180.0f;
+	scene->objects.back()->rotate_y = 0.0f;
 
-  scene->objects.back()->color = Float4(
-      0.3921568627450980f, 0.5843137254901961f, 0.9294117647058824f, 1.0f);
-  scene->objects.back()->translate = Float4{0.5f, 0, 3, 0};
-  scene->objects.back()->rotate_x = 180.0f;
-  scene->objects.back()->rotate_y = 0.0f;
+	scene->objects.back()->draw = true;
 
-  scene->objects.back()->draw = true;
+	bool running = true;
 
-  bool running = true;
+	while (running) {
+		SDL_Event event;
 
-  while (running) {
-    SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			ImGui_ImplSDL3_ProcessEvent(&event);
+			if (event.type == SDL_EVENT_QUIT) {
+				running = false;
+			}
+		}
 
-    while (SDL_PollEvent(&event)) {
-      ImGui_ImplSDL3_ProcessEvent(&event);
-      if (event.type == SDL_EVENT_QUIT) {
-        running = false;
-      }
-    }
+		ImGui_ImplSDLRenderer3_NewFrame();
+		ImGui_ImplSDL3_NewFrame();
+		ImGui::NewFrame();
 
-    ImGui_ImplSDLRenderer3_NewFrame();
-    ImGui_ImplSDL3_NewFrame();
-    ImGui::NewFrame();
+		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport()->ID);
 
-    ImGui::Begin("Meshes");
+		ImGui::Begin("Meshes");
 
-    ImGui::Text("Scene Objects");
-    ImGui::Separator();
+		// ---- Scene list ----
+		ImGui::Text("Scene Objects");
+		ImGui::Separator();
 
-    static int selected = -1;
+		ImGui::Checkbox("use Lighting", &scene->use_lighting);
 
-    // ---- Scene list ----
-    for (int i = 0; i < scene->objects.size(); i++) {
+		ImGui::Checkbox("use culling", &scene->use_culling);
 
-      char label[64];
-      std::snprintf(label, sizeof(label), "Mesh %d", i);
+		ImGui::Checkbox("Draw normals", &scene->draw_normals);
 
-      if (ImGui::Selectable(label, selected == i)) {
-        selected = i;
-      }
-    }
+		ImGui::Separator();
 
-    ImGui::Checkbox("use Lighting", &scene->use_lighting);
+		for (size_t i = 0; i < scene->objects.size(); ++i) {
+			SceneObject *object = scene->objects[i].get();
 
-    ImGui::Checkbox("use culling", &scene->use_culling);
+			std::string name = "Mesh " + std::to_string(i);
 
-    ImGui::Checkbox("Draw normals", &scene->draw_normals);
+			if (ImGui::TreeNode(name.c_str())) {
+				ImGui::Text("Inspector");
+				ImGui::Separator();
 
-    ImGui::Separator();
+				ImGui::Checkbox("Draw Object", &object->draw);
 
-    // ---- Inspector ----
-    if (selected >= 0 && selected < scene->objects.size()) {
+				ImGui::Checkbox("Use normals as color",
+				                &object->normals_as_color);
 
-      SceneObject *obj = scene->objects[selected].get();
+				ImGui::Text("Position");
+				ImGui::DragFloat3("##position", &object->translate.x, 0.1f);
 
-      ImGui::Text("Inspector");
-      ImGui::Separator();
+				ImGui::Text("Rotation");
+				ImGui::DragFloat3("##rotation", &object->rotate_x, 0.1f);
 
-      ImGui::Checkbox("Draw Object", &obj->draw);
+				ImGui::Text("Scale");
+				ImGui::DragFloat("##scale", &object->scalar, 0.1f);
 
-      ImGui::Checkbox("Use normals as color", &obj->normals_as_color);
+				ImGui::Text("Mesh Info");
 
-      ImGui::Text("Transform");
+				if (object->mesh) {
+					ImGui::Text("Vertices: %zu", object->mesh->vertices.size());
+					ImGui::Text("Faces: %zu", object->mesh->faces.size());
+				} else {
+					ImGui::Text("No mesh assigned");
+				}
 
-      ImGui::DragFloat3("Position", &obj->translate.x, 0.1f);
+				ImGui::Separator();
 
-      ImGui::DragFloat("Scale", &obj->scalar, 0.1f);
+				if (ImGui::Button("Delete")) {
+					scene->objects.erase(scene->objects.begin() + i);
+				}
+				ImGui::TreePop();
+			}
+		}
 
-      ImGui::DragFloat2("Rotation", &obj->rotate_x, 0.1f);
+		ImGui::End();
 
-      ImGui::Separator();
+		ImGui::Begin("Performance");
 
-      ImGui::Text("Mesh Info");
+		// ---- FPS / frame timing ----
+		float deltaTime = ImGui::GetIO().DeltaTime;
+		float fps = 1.0f / deltaTime;
 
-      if (obj->mesh) {
-        ImGui::Text("Vertices: %zu", obj->mesh->vertices.size());
-        ImGui::Text("Faces: %zu", obj->mesh->faces.size());
-      } else {
-        ImGui::Text("No mesh assigned");
-      }
+		ImGui::Text("FPS: %.1f", fps);
+		ImGui::Text("Frame Time: %.3f ms", deltaTime * 1000.0f);
 
-      ImGui::Separator();
+		// ---- optional: scene stats ----
+		ImGui::Separator();
 
-      if (ImGui::Button("Delete")) {
-        scene->objects.erase(scene->objects.begin() + selected);
-        selected = -1;
-      }
-    }
+		ImGui::Text("Objects: %zu", scene->objects.size());
 
-    ImGui::End();
+		// If you have mesh stats:
+		size_t triangles = 0;
+		for (auto &obj : scene->objects) {
+			if (obj->mesh)
+				triangles += obj->mesh->faces.size();
+		}
 
-    ImGui::Begin("Performance");
+		ImGui::Text("Triangles: %zu", triangles);
 
-    // ---- FPS / frame timing ----
-    float deltaTime = ImGui::GetIO().DeltaTime;
-    float fps = 1.0f / deltaTime;
+		ImGui::End();
 
-    ImGui::Text("FPS: %.1f", fps);
-    ImGui::Text("Frame Time: %.3f ms", deltaTime * 1000.0f);
+		ImGui::Begin("Camera");
 
-    // ---- optional: scene stats ----
-    ImGui::Separator();
+		ImGui::DragFloat3("Position", &scene->camera.pos.x, 0.1f);
 
-    ImGui::Text("Objects: %zu", scene->objects.size());
+		ImGui::DragFloat2("Rotation", &scene->camera.rotate_x, 0.1f);
 
-    // If you have mesh stats:
-    size_t triangles = 0;
-    for (auto &obj : scene->objects) {
-      if (obj->mesh)
-        triangles += obj->mesh->faces.size();
-    }
+		ImGui::DragFloat3("Sky Light dir", &scene->sky_light_dir.x, 0.1f);
 
-    ImGui::Text("Triangles: %zu", triangles);
+		ImGui::End();
 
-    ImGui::End();
+		scene->render(buffer);
 
-    ImGui::Begin("Camera");
+		SDL_UpdateTexture(texture, nullptr, buffer->buffer,
+		                  RENDER_WIDTH * sizeof(uint32_t));
 
-    ImGui::DragFloat3("Position", &scene->camera.pos.x, 0.1f);
+		ImGui::Begin("Renderer");
 
-    ImGui::DragFloat2("Rotation", &scene->camera.rotate_x, 0.1f);
+		ImGui::Image((ImTextureID)texture, ImVec2(RENDER_WIDTH, RENDER_HEIGHT));
 
-    ImGui::DragFloat3("Sky Light dir", &scene->sky_light_dir.x, 0.1f);
+		ImGui::End();
 
-    ImGui::End();
+		ImGui::Render();
+		ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
 
-    scene->render(buffer);
-
-    SDL_UpdateTexture(texture, nullptr, buffer->buffer,
-                      WIDTH * sizeof(uint32_t));
-
-    SDL_RenderClear(renderer);
-    SDL_RenderTexture(renderer, texture, nullptr, nullptr);
-
-    ImGui::Render();
-    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
-
-    SDL_RenderPresent(renderer);
-    buffer->clear();
-  }
-  SDL_DestroyTexture(texture);
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
+		SDL_RenderPresent(renderer);
+		buffer->clear();
+	}
+	SDL_DestroyTexture(texture);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 }
