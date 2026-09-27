@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENTIONS ON)
 
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -O0")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -39,8 +40,10 @@ target_include_directories(obj_lib PUBLIC src)
 
 add_library(geometry_lib
     src/geometry/Triangle.cpp
+    src/structs/Edge.cpp
     src/geometry/SceneObject.cpp
     src/geometry/Bresenhams_Line.cpp
+    src/geometry/Mesh.cpp
 )
 
 target_include_directories(geometry_lib PUBLIC src)

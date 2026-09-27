@@ -28,11 +28,10 @@ Camera::to_viewspace(const std::array<Vertex, 3> &vertices,
 	return out;
 }
 
-Matrix4 Camera::get_transform_matrix() const {
-	return get_rotation_matrix() * Transform::translate(pos).inv();
+Matrix4 Camera::get_transform_matrix_inv() const {
+	return Transform::camera_transform(pos, Float3(rotate_x, rotate_y, 0.0f));
 }
 
-Matrix4 Camera::get_rotation_matrix() const {
-	return (Transform::rotate_y(rotate_y) * Transform::rotate_x(rotate_x))
-	    .inv();
+Matrix4 Camera::get_rotation_matrix_inv() const {
+	return Transform::rotate_inv(Float3(rotate_x, rotate_y, 0.0f));
 }

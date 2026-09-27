@@ -89,33 +89,59 @@ int main() {
 	scene->sky_light_dir = Float4(1, -1, -1, 0);
 	scene->use_lighting = true;
 
+	for (const auto &entry : std::filesystem::directory_iterator("models/")) {
+		scene->meshes.emplace_back(
+		    std::make_unique<Mesh>(Obj::parse_obj(entry.path())));
+	}
+
 	// Cube Object
-	scene->meshes.emplace_back(
-	    std::make_unique<Mesh>(Obj::parse_obj("Cube_regenerated.obj")));
-	scene->objects.emplace_back(
-	    std::make_unique<SceneObject>(SceneObject(scene->meshes.back().get())));
+	auto cube = Mesh::find_mesh(scene->meshes, "cube");
+	if (cube != nullptr) {
+		scene->objects.emplace_back(
+		    std::make_unique<SceneObject>(SceneObject(cube)));
 
-	scene->objects.back()->normals_as_color = true;
-	scene->objects.back()->translate = Float4{-2, 0, 5, 0};
-	scene->objects.back()->rotate_x = 45.0f;
-	scene->objects.back()->rotate_y = -35.0f;
-	scene->objects.back()->scalar = 0.8f;
+		scene->objects.back()->normals_as_color = true;
+		scene->objects.back()->translate = Float4{-2, 0, 5, 0};
+		scene->objects.back()->rotate.x = 45.0f;
+		scene->objects.back()->rotate.y = -35.0f;
+		scene->objects.back()->scalar = 0.8f;
 
-	scene->objects.back()->draw = true;
+		scene->objects.back()->draw = true;
+	} else {
+		printf("Cube didn't load!");
+	}
 
 	// Monkey object
-	scene->meshes.emplace_back(
-	    std::make_unique<Mesh>(Obj::parse_obj("monkey_regenerated.obj")));
-	scene->objects.emplace_back(
-	    std::make_unique<SceneObject>(SceneObject(scene->meshes.back().get())));
+	auto suzanne = Mesh::find_mesh(scene->meshes, "suzanne");
+	if (suzanne != nullptr) {
+		scene->objects.emplace_back(
+		    std::make_unique<SceneObject>(SceneObject(suzanne)));
 
-	scene->objects.back()->color = Float4(
-	    0.3921568627450980f, 0.5843137254901961f, 0.9294117647058824f, 1.0f);
-	scene->objects.back()->translate = Float4{0.5f, 0, 3, 0};
-	scene->objects.back()->rotate_x = 180.0f;
-	scene->objects.back()->rotate_y = 0.0f;
+		scene->objects.back()->color =
+		    Float4(0.3921568627450980f, 0.5843137254901961f,
+		           0.9294117647058824f, 1.0f);
+		scene->objects.back()->translate = Float4{0.5f, 0, 3, 0};
+		scene->objects.back()->rotate.x = 180.0f;
 
-	scene->objects.back()->draw = true;
+		scene->objects.back()->draw = true;
+	} else {
+		printf("Suzanne didn't load!");
+	}
+
+	auto dragon = Mesh::find_mesh(scene->meshes, "dragon");
+	if (dragon != nullptr) {
+		scene->objects.emplace_back(
+		    std::make_unique<SceneObject>(SceneObject(dragon)));
+
+		scene->objects.back()->translate.z = 5.0f;
+		scene->objects.back()->scalar = 0.02f;
+		scene->objects.back()->rotate.x = 180.0f;
+
+		scene->objects.back()->normals_as_color = true;
+		scene->objects.back()->draw = false;
+	} else {
+		printf("Dragon didn't load!");
+	}
 
 	bool running = true;
 
@@ -137,6 +163,31 @@ int main() {
 
 		ImGui::Begin("Meshes");
 
+		ImGui::Text("Loaded Meshes");
+		ImGui::Separator();
+
+		for (size_t i = 0; i < scene->meshes.size(); i++) {
+			Mesh *mesh = scene->meshes.at(i).get();
+
+			if (ImGui::TreeNode(mesh->name.c_str())) {
+				ImGui::Text("%s", mesh->name.c_str());
+
+				ImGui::Separator();
+
+				ImGui::Text("Mesh Info");
+
+				ImGui::Text("Vertices: %zu", mesh->vertices.size());
+				ImGui::Text("Faces: %zu", mesh->faces.size());
+
+				std::string button_str = "Create new " + mesh->name;
+				if (ImGui::Button(button_str.c_str())) {
+					scene->objects.emplace_back(
+					    std::make_unique<SceneObject>(SceneObject(mesh)));
+				}
+				ImGui::TreePop();
+			}
+		}
+
 		// ---- Scene list ----
 		ImGui::Text("Scene Objects");
 		ImGui::Separator();
@@ -152,7 +203,7 @@ int main() {
 		for (size_t i = 0; i < scene->objects.size(); ++i) {
 			SceneObject *object = scene->objects[i].get();
 
-			std::string name = "Mesh " + std::to_string(i);
+			std::string name = object->mesh->name + std::to_string(i);
 
 			if (ImGui::TreeNode(name.c_str())) {
 				ImGui::Text("Inspector");
@@ -167,19 +218,13 @@ int main() {
 				ImGui::DragFloat3("##position", &object->translate.x, 0.1f);
 
 				ImGui::Text("Rotation");
-				ImGui::DragFloat3("##rotation", &object->rotate_x, 0.1f);
+				ImGui::DragFloat3("##rotation", &object->rotate.x, 0.1f);
 
 				ImGui::Text("Scale");
-				ImGui::DragFloat("##scale", &object->scalar, 0.1f);
+				ImGui::DragFloat("##scale", &object->scalar, 0.001f);
 
-				ImGui::Text("Mesh Info");
-
-				if (object->mesh) {
-					ImGui::Text("Vertices: %zu", object->mesh->vertices.size());
-					ImGui::Text("Faces: %zu", object->mesh->faces.size());
-				} else {
-					ImGui::Text("No mesh assigned");
-				}
+				ImGui::Text("Color");
+				ImGui::ColorEdit3("##color", &object->color.r);
 
 				ImGui::Separator();
 
