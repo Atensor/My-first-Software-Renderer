@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENTIONS ON)
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -flto=auto -march=native")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -O0")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -14,10 +14,6 @@ find_package(SDL3 REQUIRED)
 
 #adding libraries
 add_library(math_lib
-    src/math/vector/Float2.cpp
-    src/math/vector/Float3.cpp
-    src/math/vector/Float4.cpp
-    src/math/matrix/Matrix4.cpp
     src/math/Transform.cpp
 )
 

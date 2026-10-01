@@ -6,19 +6,19 @@
 #define SCENE_H
 
 struct Scene {
-    std::vector<std::unique_ptr<Mesh>> meshes;
-    std::vector<std::unique_ptr<SceneObject>> objects;
+	std::vector<std::unique_ptr<Mesh>> meshes;
+	std::vector<std::unique_ptr<SceneObject>> objects;
 
-    Camera camera;
+	Camera camera;
 
-    Float4 sky_light_dir;
+	Float3 sky_light_dir;
 
-    bool use_lighting;
-    bool use_culling;
-    bool draw_normals;
+	bool use_lighting;
+	bool use_culling;
+	bool draw_normals;
 
-    Scene(const Camera &camera);
+	Scene(const Camera &camera);
 
-    void render(std::unique_ptr<Framebuffer> &buffer) const;
+	void render(std::unique_ptr<Framebuffer> &buffer) const;
 };
 #endif

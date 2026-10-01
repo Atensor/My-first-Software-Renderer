@@ -2,7 +2,7 @@
 #include <algorithm>
 
 void Bresenhams_Line::draw_line_low(const Float2 &a, const Float2 &b,
-                                    const Float4 &color, Framebuffer *buffer) {
+                                    const Float3 &color, Framebuffer *buffer) {
 	int dx{int(b.x - a.x)};
 	int dy{int(b.y - a.y)};
 
@@ -40,7 +40,7 @@ void Bresenhams_Line::draw_line_low(const Float2 &a, const Float2 &b,
 }
 
 void Bresenhams_Line::draw_line_high(const Float2 &a, const Float2 &b,
-                                     const Float4 &color, Framebuffer *buffer) {
+                                     const Float3 &color, Framebuffer *buffer) {
 	int dx{int(b.x - a.x)};
 	int dy{int(b.y - a.y)};
 	int xi{1};
@@ -66,9 +66,8 @@ void Bresenhams_Line::draw_line_high(const Float2 &a, const Float2 &b,
 	}
 }
 
-// TODO: Make 3D Version
 void Bresenhams_Line::draw_line(const Float2 &a, const Float2 &b,
-                                const Float4 &color, Framebuffer *buffer) {
+                                const Float3 &color, Framebuffer *buffer) {
 	if (std::abs(b.y - a.y) < std::abs(b.x - a.x)) {
 		if (a.x > b.x) {
 			draw_line_low(b, a, color, buffer);

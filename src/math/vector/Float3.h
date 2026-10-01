@@ -3,33 +3,51 @@
 #define FLOAT3_H
 
 struct Float3 {
-    union {
-        struct {
-            float x, y, z;
-        };
-        struct {
-            float r, g, b;
-        };
-    };
+	union {
+		struct {
+			float x, y, z;
+		};
+		struct {
+			float r, g, b;
+		};
+	};
 
-    Float3();
-    Float3(float x, float y, float z);
+	Float3() : x{0}, y{0}, z{0} {}
 
-    Float3 operator+(const Float3 &a) const;
-    Float3 operator-(const Float3 &a) const;
-    Float3 operator*(const Float3 &a) const;
-    static float dot(const Float3 &a, const Float3 &b);
-    static Float3 cross(const Float3 &a, const Float3 &b);
+	Float3(float x, float y, float z) : x{x}, y{y}, z{z} {}
 
-    static Float3 scale(const Float3 &a, float r);
+	Float3 operator+(const Float3 &a) const {
+		return Float3{x + a.x, y + a.y, z + a.z};
+	};
 
-    float get_length() const;
+	Float3 operator-(const Float3 &a) const {
+		return Float3{x - a.x, y - a.y, z - a.z};
+	};
 
-    Float3 normalize() const;
+	static float dot(const Float3 &a, const Float3 &b) {
+		return a.x * b.x + a.y * b.y + a.z * b.z;
+	}
 
-    Float2 xy() const;
+	Float3 operator*(const Float3 &a) const {
+		return Float3{x * a.x, y * a.y, z * a.z};
+	}
 
-    void print();
+	static Float3 cross(const Float3 &a, const Float3 &b) {
+		return Float3{a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
+		              a.x * b.y - a.y * b.x};
+	}
+
+	static Float3 scale(const Float3 &a, float r) {
+		return Float3{a.x * r, a.y * r, a.z * r};
+	}
+
+	float get_length() const { return std::sqrt(x * x + y * y + z * z); }
+
+	Float3 normalize() const {
+		return scale(Float3(x, y, z), 1.0f / get_length());
+	}
+
+	Float2 xy() const { return Float2{x, y}; }
 };
 
 #endif

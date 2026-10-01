@@ -86,10 +86,14 @@ int main() {
 
 	std::unique_ptr<Scene> scene = std::make_unique<Scene>(
 	    Camera(1.0f, Float2{(float)RENDER_WIDTH, (float)RENDER_HEIGHT}));
-	scene->sky_light_dir = Float4(1, -1, -1, 0);
+	scene->sky_light_dir = Float3(1, -1, -1);
 	scene->use_lighting = true;
 
 	for (const auto &entry : std::filesystem::directory_iterator("models/")) {
+		/*
+		if (entry == std::filesystem::path("models/Dragon.obj"))
+		    continue;
+		*/
 		scene->meshes.emplace_back(
 		    std::make_unique<Mesh>(Obj::parse_obj(entry.path())));
 	}
@@ -101,12 +105,12 @@ int main() {
 		    std::make_unique<SceneObject>(SceneObject(cube)));
 
 		scene->objects.back()->normals_as_color = true;
-		scene->objects.back()->translate = Float4{-2, 0, 5, 0};
+		scene->objects.back()->translate = Float3{-2, 0, 5};
 		scene->objects.back()->rotate.x = 45.0f;
 		scene->objects.back()->rotate.y = -35.0f;
 		scene->objects.back()->scalar = 0.8f;
 
-		scene->objects.back()->draw = true;
+		scene->objects.back()->draw = false;
 	} else {
 		printf("Cube didn't load!");
 	}
@@ -117,13 +121,12 @@ int main() {
 		scene->objects.emplace_back(
 		    std::make_unique<SceneObject>(SceneObject(suzanne)));
 
-		scene->objects.back()->color =
-		    Float4(0.3921568627450980f, 0.5843137254901961f,
-		           0.9294117647058824f, 1.0f);
-		scene->objects.back()->translate = Float4{0.5f, 0, 3, 0};
+		scene->objects.back()->color = Float3(
+		    0.3921568627450980f, 0.5843137254901961f, 0.9294117647058824f);
+		scene->objects.back()->translate = Float3{0.5f, 0, 3};
 		scene->objects.back()->rotate.x = 180.0f;
 
-		scene->objects.back()->draw = true;
+		scene->objects.back()->draw = false;
 	} else {
 		printf("Suzanne didn't load!");
 	}
@@ -133,12 +136,13 @@ int main() {
 		scene->objects.emplace_back(
 		    std::make_unique<SceneObject>(SceneObject(dragon)));
 
+		scene->objects.back()->color = Float3(
+		    0.3921568627450980f, 0.5843137254901961f, 0.9294117647058824f);
 		scene->objects.back()->translate.z = 5.0f;
 		scene->objects.back()->scalar = 0.02f;
 		scene->objects.back()->rotate.x = 180.0f;
 
-		scene->objects.back()->normals_as_color = true;
-		scene->objects.back()->draw = false;
+		scene->objects.back()->draw = true;
 	} else {
 		printf("Dragon didn't load!");
 	}
@@ -176,7 +180,7 @@ int main() {
 
 				ImGui::Text("Mesh Info");
 
-				ImGui::Text("Vertices: %zu", mesh->vertices.size());
+				ImGui::Text("Vertices: %zu", mesh->positions.size());
 				ImGui::Text("Faces: %zu", mesh->faces.size());
 
 				std::string button_str = "Create new " + mesh->name;

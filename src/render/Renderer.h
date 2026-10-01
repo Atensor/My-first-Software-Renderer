@@ -7,11 +7,12 @@
 #define RENDERER_H
 
 struct Renderer {
-    static void draw_triangle(const Triangle &tri, const Camera &camera,
-                              std::unique_ptr<Framebuffer> &buffer,
-                              bool use_culling);
+	static void draw_triangle(const Triangle &tri,
+	                          std::array<Float2, 3> *screen_pos,
+	                          const Camera &camera,
+	                          std::unique_ptr<Framebuffer> &buffer);
 
-    static void draw_line(const Float4 &a, const Float4 &b, const Float4 &color,
-                          const Camera &camera, Framebuffer *buffer);
+	static void draw_line(const Float3 &a, const Float3 &b, const Float3 &color,
+	                      const Camera &camera, Framebuffer *buffer);
 };
 #endif

@@ -3,10 +3,10 @@
 #ifndef VERTEX_H
 #define VERTEX_H
 struct Vertex {
-    Float4 pos;
-    Float4 normal;
-    Float4 color;
+	Float3 pos;
+	Float3 normal;
+	Float3 color;
 
-    float light;
+	float light;
 };
 #endif

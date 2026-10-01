@@ -1,8 +1,8 @@
 #include "Camera.h"
 
 Camera::Camera(float depth, const Float2 &canvas_dim_in)
-    : pos{Float4{0, 0, 0, 0}}, canvas_dim(canvas_dim_in), rotate_x(0),
-      rotate_y(0), VP_depth(depth), VP_height(1),
+    : pos{Float3{0, 0, 0}}, canvas_dim(canvas_dim_in), rotate_x(0), rotate_y(0),
+      VP_depth(depth), VP_height(1),
       VP_width(canvas_dim_in.x / canvas_dim_in.y) {}
 
 Float2 Camera::viewport_to_canvas(const Float2 &vp_pos) const {
@@ -13,25 +13,15 @@ Float2 Camera::viewport_to_canvas(const Float2 &vp_pos) const {
 	       Float2::scale(canvas_dim, 1.0f / 2.0f);
 }
 
-Float2 Camera::project_Vertex(const Vertex &v) const {
+Float2 Camera::project_pos(const Float3 &pos) const {
 	return viewport_to_canvas(
-	    Float2(v.pos.x * VP_depth / v.pos.z, v.pos.y * VP_depth / v.pos.z));
+	    Float2(pos.x * VP_depth / pos.z, pos.y * VP_depth / pos.z));
 }
 
-std::array<Vertex, 3>
-Camera::to_viewspace(const std::array<Vertex, 3> &vertices,
-                     const Matrix4 &transform, const Matrix4 &rotation) const {
-	std::array<Vertex, 3> out;
-	for (int i = 0; i < (int)vertices.size(); i++) {
-		out.at(i) = Transform::transform(vertices.at(i), transform, rotation);
-	}
-	return out;
-}
-
-Matrix4 Camera::get_transform_matrix_inv() const {
+Matrix3x4 Camera::get_transform_matrix_inv() const {
 	return Transform::camera_transform(pos, Float3(rotate_x, rotate_y, 0.0f));
 }
 
-Matrix4 Camera::get_rotation_matrix_inv() const {
+Matrix3x4 Camera::get_rotation_matrix_inv() const {
 	return Transform::rotate_inv(Float3(rotate_x, rotate_y, 0.0f));
 }
