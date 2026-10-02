@@ -6,8 +6,7 @@ Camera::Camera(float depth, const Float2 &canvas_dim_in)
       VP_width(canvas_dim_in.x / canvas_dim_in.y) {}
 
 Float2 Camera::viewport_to_canvas(const Float2 &vp_pos) const {
-	// add half of the canvas dimensions to shift 0/0 to the center of the
-	// canvas
+	// Shifting 0/0 from the top left to the center of the screen
 	return Float2(vp_pos.x * canvas_dim.x / VP_width,
 	              vp_pos.y * canvas_dim.y / VP_height) +
 	       Float2::scale(canvas_dim, 1.0f / 2.0f);

@@ -19,10 +19,6 @@ struct Framebuffer {
 	void write_pixel(int x, int y, Float3 color, float depth);
 	float get_depth(int x, int y) const;
 
-	void write_ppm(std::string filename) const;
-
-	void convert_to_uint32_buffer(uint32_t *framebuffer) const;
-
 	void clear();
 
 	int get_width() const;

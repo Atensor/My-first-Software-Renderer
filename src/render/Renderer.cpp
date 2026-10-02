@@ -12,6 +12,7 @@ inline void swap(std::array<Float2, 3> *arr, int index_1, int index_2) {
 	arr->at(index_2) = temp;
 }
 
+// Sorting Vertex positions with Bubble Sort
 inline void sort_by_y(std::array<Float2, 3> *in) {
 	if (in->at(1).y < in->at(0).y) {
 		swap(in, 1, 0);
@@ -29,21 +30,23 @@ void Renderer::draw_triangle(const Triangle &tri,
                              const Camera &camera,
                              std::unique_ptr<Framebuffer> &buffer) {
 
-	float area = Triangle::get_area(screen_pos->at(0), screen_pos->at(1),
-	                                screen_pos->at(2));
-
-	// Get screenspace Cooridinates
 	std::array<Float2, 3> sorted_vertices = *screen_pos;
 	sort_by_y(&sorted_vertices);
 
 	// used this book for scanline rasterization, but removed the vectors with a
 	// struct:
 	// https://gabrielgambetta.com/computer-graphics-from-scratch/07-filled-triangles.html
+	//
+	// Setting up edges
 	Edge edge_long = Edge(sorted_vertices.at(0).x, sorted_vertices.at(0).y,
 	                      sorted_vertices.at(2).x, sorted_vertices.at(2).y);
 
 	Edge edge_short = Edge(sorted_vertices.at(0).x, sorted_vertices.at(0).y,
 	                       sorted_vertices.at(1).x, sorted_vertices.at(1).y);
+
+	// Setting up x-step differences
+	float area = Triangle::get_area(screen_pos->at(0), screen_pos->at(1),
+	                                screen_pos->at(2));
 
 	Float3 d_barycentric_dx{(screen_pos->at(1).y - screen_pos->at(2).y) / area,
 	                        (screen_pos->at(2).y - screen_pos->at(0).y) / area,
@@ -52,6 +55,7 @@ void Renderer::draw_triangle(const Triangle &tri,
 	float dz_dx = d_barycentric_dx.x * tri.vertices.at(0).pos.z +
 	              d_barycentric_dx.y * tri.vertices.at(1).pos.z +
 	              d_barycentric_dx.z * tri.vertices.at(2).pos.z;
+
 	float d_inv_z_dx = d_barycentric_dx.x / tri.vertices.at(0).pos.z +
 	                   d_barycentric_dx.y / tri.vertices.at(1).pos.z +
 	                   d_barycentric_dx.z / tri.vertices.at(2).pos.z;
@@ -71,8 +75,17 @@ void Renderer::draw_triangle(const Triangle &tri,
 	                 (tri.vertices.at(2).light / tri.vertices.at(2).pos.z) *
 	                     d_barycentric_dx.z};
 
-	// TODO: Fix Cut off for Triangles partily off screen on top of the
-	// screen
+	// step until the top of the screen
+	for (int i = static_cast<int>(std::ceil(sorted_vertices.at(0).y)); i < 0;
+	     i++) {
+		if (i == edge_short.y_end) {
+			edge_short = Edge(sorted_vertices.at(1).x, sorted_vertices.at(1).y,
+			                  sorted_vertices.at(2).x, sorted_vertices.at(2).y);
+		}
+		edge_short.step_x();
+		edge_long.step_x();
+	}
+
 	int y_start{
 	    std::max(static_cast<int>(std::ceil(sorted_vertices.at(0).y)), 0)};
 	int y_end{std::min(static_cast<int>(std::ceil(sorted_vertices.at(2).y)),
@@ -80,11 +93,13 @@ void Renderer::draw_triangle(const Triangle &tri,
 
 	int y = y_start;
 	while (y < y_end) {
+		// get the next short edge when the first has ended
 		if (y == edge_short.y_end) {
 			edge_short = Edge(sorted_vertices.at(1).x, sorted_vertices.at(1).y,
 			                  sorted_vertices.at(2).x, sorted_vertices.at(2).y);
 		}
 
+		// init Scanline start and end
 		float x_short = edge_short.x;
 		float x_long = edge_long.x;
 
@@ -98,6 +113,7 @@ void Renderer::draw_triangle(const Triangle &tri,
 		int x_end{std::min(static_cast<int>(std::ceil(x_right)),
 		                   buffer->get_width() - 1)};
 
+		// init values at Scanline start
 		Float3 barycentric_coordinates = tri.get_barycentric_coordinates(
 		    screen_pos, Float2(x_start, y), area);
 
@@ -126,13 +142,16 @@ void Renderer::draw_triangle(const Triangle &tri,
 				continue;
 			}
 
+			// Remove z from Interpolated values
 			Float3 interpolated_color{Float3::scale(color_sum, 1.0f / inv_z)};
 			float interpolated_light = light / inv_z;
 
+			// apply light
 			Float3 color{Float3::scale(interpolated_color, interpolated_light)};
 
 			buffer->write_pixel(x, y, color, z);
 
+			// advance Values to next Pixel
 			barycentric_coordinates =
 			    barycentric_coordinates + d_barycentric_dx;
 

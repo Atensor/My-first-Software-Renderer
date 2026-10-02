@@ -10,6 +10,16 @@
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
 
+/*
+ * Author: Atensor
+ * Description: A Software rasterizer using Scanline Rasterization I wrote to
+ * learn how Rasterization works.
+ *
+ * The UI is Written by ChatGPT and most of the research is done with AI, but I
+ * wrote the majority of the rasterization code myself. For this Project I also
+ * learned C++ with the help of ChatGPT.
+ */
+
 constexpr int WIDTH{800}, HEIGHT{600};
 constexpr int RENDER_WIDTH{800}, RENDER_HEIGHT{600};
 
@@ -91,6 +101,7 @@ int main() {
 
 	for (const auto &entry : std::filesystem::directory_iterator("models/")) {
 		/*
+		// Skip big Dragon Object to speed up the start in Debug builds
 		if (entry == std::filesystem::path("models/Dragon.obj"))
 		    continue;
 		*/
@@ -98,7 +109,6 @@ int main() {
 		    std::make_unique<Mesh>(Obj::parse_obj(entry.path())));
 	}
 
-	// Cube Object
 	auto cube = Mesh::find_mesh(scene->meshes, "cube");
 	if (cube != nullptr) {
 		scene->objects.emplace_back(
@@ -115,7 +125,6 @@ int main() {
 		printf("Cube didn't load!");
 	}
 
-	// Monkey object
 	auto suzanne = Mesh::find_mesh(scene->meshes, "suzanne");
 	if (suzanne != nullptr) {
 		scene->objects.emplace_back(
@@ -167,6 +176,7 @@ int main() {
 
 		ImGui::Begin("Meshes");
 
+		// ---- Mesh List ----
 		ImGui::Text("Loaded Meshes");
 		ImGui::Separator();
 
@@ -204,6 +214,7 @@ int main() {
 
 		ImGui::Separator();
 
+		// ---- Scene Object Inspector ----
 		for (size_t i = 0; i < scene->objects.size(); ++i) {
 			SceneObject *object = scene->objects[i].get();
 
@@ -250,12 +261,11 @@ int main() {
 		ImGui::Text("FPS: %.1f", fps);
 		ImGui::Text("Frame Time: %.3f ms", deltaTime * 1000.0f);
 
-		// ---- optional: scene stats ----
+		// ---- scene stats ----
 		ImGui::Separator();
 
 		ImGui::Text("Objects: %zu", scene->objects.size());
 
-		// If you have mesh stats:
 		size_t triangles = 0;
 		for (auto &obj : scene->objects) {
 			if (obj->mesh)
@@ -266,6 +276,7 @@ int main() {
 
 		ImGui::End();
 
+		// ---- Camera controls ----
 		ImGui::Begin("Camera");
 
 		ImGui::DragFloat3("Position", &scene->camera.pos.x, 0.1f);
@@ -276,6 +287,7 @@ int main() {
 
 		ImGui::End();
 
+		// ---- Render Window ----
 		scene->render(buffer);
 
 		SDL_UpdateTexture(texture, nullptr, buffer->buffer,

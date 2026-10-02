@@ -24,11 +24,14 @@ void Scene::render(std::unique_ptr<Framebuffer> &buffer) const {
 			continue;
 		}
 
-		// Pre Calculated tranform Matrices as M = T * R * S
+		// Pre Calculated Matrices as M = T * R * S
 		// Seperate Rotation Matrix for normals
+		//
+		// World Space
 		Matrix3x4 transform = object->get_transform_matrix();
 		Matrix3x4 rotation = object->get_rotation_matrix();
 
+		// Camera Space
 		Matrix3x4 camera_transform = camera.get_transform_matrix_inv();
 		Matrix3x4 camera_rotation = camera.get_rotation_matrix_inv();
 
@@ -42,6 +45,7 @@ void Scene::render(std::unique_ptr<Framebuffer> &buffer) const {
 		std::vector<bool> norm_transformed(object->mesh->normals.size());
 		std::vector<bool> culled_faces(object->mesh->faces.size());
 
+		// First Iteration over Faces for Backface culling
 		for (size_t i = 0; i < object->mesh->faces.size(); i++) {
 			Float3 *p_surface_normal =
 			    &(object->mesh->faces.at(i).surface_normal);
@@ -64,11 +68,13 @@ void Scene::render(std::unique_ptr<Framebuffer> &buffer) const {
 			}
 		}
 
+		// Lazy Transform non culled Vertex positions and normals
 		transform_vec_Float3(object->mesh->positions, &transformed_pos,
 		                     pos_transformed, view_model_transform);
 		transform_vec_Float3(object->mesh->normals, &transformed_norm,
 		                     norm_transformed, view_model_rotation);
 
+		// Second Iteration over Faces for setting up Rasterization
 		for (size_t i = 0; auto &face : object->mesh->faces) {
 			if (culled_faces.at(i++))
 				continue;
@@ -82,6 +88,7 @@ void Scene::render(std::unique_ptr<Framebuffer> &buffer) const {
 				                        transformed_norm.at(normal_index),
 				                        Float3(0, 0, 0), 1.0f};
 			}
+
 			Float3 face_color =
 			    object->normals_as_color
 			        ? Float3::scale(face.surface_normal + Float3{1, 1, 1},
@@ -106,7 +113,7 @@ void Scene::render(std::unique_ptr<Framebuffer> &buffer) const {
 			    camera.project_pos(vertices[2].pos)};
 
 			Float3 transformed_surface_normal =
-			    (view_model_rotation * face.surface_normal);
+			    view_model_rotation * face.surface_normal;
 
 			Renderer::draw_triangle(
 			    Triangle(vertices, transformed_surface_normal), &screen_pos_out,
@@ -115,10 +122,13 @@ void Scene::render(std::unique_ptr<Framebuffer> &buffer) const {
 			// Drawing normals of the triangles for Debug
 			if (draw_normals) {
 				Float3 center(0.0f, 0.0f, 0.0f);
+
 				for (Vertex v : vertices) {
 					center = center + v.pos;
 				}
+
 				center = Float3::scale(center, 1.0f / 3.0f);
+
 				Float3 normal_dir(
 				    center +
 				    Float3::scale((rotation * face.surface_normal), 0.1f));

@@ -12,6 +12,7 @@ Triangle::Triangle(const std::array<Vertex, 3> &vertices,
 
 Float3 Triangle::get_color(const Float3 &barycentric_coordinates) const {
 
+	// color contibution per Vertex
 	Float3 a_color{Float3::scale(vertices[0].color, barycentric_coordinates.x /
 	                                                    vertices[0].pos.z)};
 	Float3 b_color{Float3::scale(vertices[1].color, barycentric_coordinates.y /
@@ -20,7 +21,6 @@ Float3 Triangle::get_color(const Float3 &barycentric_coordinates) const {
 	                                                    vertices[2].pos.z)};
 	Float3 color_sum{a_color + b_color + c_color};
 
-	// TODO: Add alpha blending
 	return color_sum;
 }
 
