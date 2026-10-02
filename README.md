@@ -6,7 +6,8 @@ I additionally used this project to learn C++ and some of its concepts.
 
 If I revisit Rasterization I probably will use the GPU and need to inform myself about the topic beforehand.
 
-![A renderd Scene with the Stanford Dragon, Suzanne and a cube](<img width="2050" height="1183" alt="Final Scene" src="https://github.com/user-attachments/assets/651c6fa2-b327-4119-86a5-2193942f4d77" />)
+A renderd Scene with the Stanford Dragon, Suzanne and a cube
+<img width="2050" height="1183" alt="Final Scene" src="https://github.com/user-attachments/assets/651c6fa2-b327-4119-86a5-2193942f4d77" />
 
 
 
